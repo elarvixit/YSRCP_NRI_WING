@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin Panel | YSRCP NRI Wing</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --blue: #0b3a8c; --blue2: #1652c4; --green: #0f9d58; --ink: #0d1b33; --muted: #6b7690; --line: #e3e9f5; --bg: #f3f7ff; --red: #c21; --gold: #f5b800; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Outfit", system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select { font: inherit; }
+  .hidden { display: none !important; }
+  /* login */
+  .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: linear-gradient(135deg, #0a2a6e, #0b3a8c 50%, #0f7a4c); }
+  .login form { width: min(380px, 100%); background: #fff; border-radius: 22px; padding: 30px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.5); display: grid; gap: 14px; }
+  .login h1 { margin: 0; font-size: 1.4rem; color: var(--blue); }
+  .login p { margin: 0; color: var(--muted); font-size: .9rem; }
+  label { display: grid; gap: 6px; font-size: .85rem; font-weight: 600; color: #44506a; }
+  input, select { padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; outline: none; }
+  input:focus, select:focus { border-color: var(--blue2); }
+  .btn { padding: 10px 16px; border-radius: 10px; border: 0; cursor: pointer; font-weight: 600; background: linear-gradient(120deg, var(--blue), var(--green)); color: #fff; }
+  .btn.ghost { background: #fff; color: var(--blue); border: 1.5px solid var(--line); }
+  .btn.sm { padding: 6px 10px; font-size: .82rem; }
+  .err { color: var(--red); font-size: .88rem; min-height: 1.2em; }
+  /* app */
+  header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  header b { color: var(--blue); font-size: 1.1rem; }
+  header .who { margin-left: auto; color: var(--muted); font-size: .88rem; }
+  nav { display: flex; gap: 6px; padding: 10px 20px; background: #fff; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav button { border: 0; background: none; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 600; color: #44506a; white-space: nowrap; }
+  nav button.on { background: var(--bg); color: var(--blue); }
+  nav .badge { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 10px; background: var(--red); color: #fff; font-size: .72rem; }
+  main { padding: 20px; max-width: 1300px; margin: 0 auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px; }
+  .card { background: #fff; border-radius: 16px; padding: 18px; border: 1px solid var(--line); }
+  .card span { color: var(--muted); font-size: .85rem; }
+  .card b { display: block; font-size: 2rem; color: var(--blue); }
+  .card.alert b { color: var(--red); }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .bar h2 { margin: 0 auto 0 0; font-size: 1.3rem; }
+  .table-wrap { overflow-x: auto; background: #fff; border-radius: 16px; border: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f8faff; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); position: sticky; top: 0; }
+  tr.urgent td:first-child { box-shadow: inset 4px 0 0 var(--red); }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: .75rem; font-weight: 700; background: #e3f7ec; color: var(--green); }
+  .pill.red { background: #ffe5e5; color: var(--red); }
+  .muted { color: var(--muted); }
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 12px; opacity: 0; transition: opacity .3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .desc { max-width: 320px; white-space: pre-wrap; }
+  .pill.amber { background: #fff4d6; color: #8a5a00; }
+  .assign { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; min-width: 210px; }
+  .assign select { padding: 6px 8px; max-width: 170px; }
+  .wa-link { display: inline-block; margin-top: 4px; font-size: .8rem; font-weight: 600; color: #128c4a; }
+  tr.history td { background: #f7f9fd; }
+  .tl { margin: 0; padding-left: 18px; font-size: .85rem; }
+  .tl li { margin: 4px 0; }
+  .vol-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; background: #fff; padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; }
+  .vol-form label { display: grid; gap: 4px; font-size: .8rem; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<section class="login" id="loginView">
+  <form id="loginForm">
+    <h1>YSRCP NRI Wing – Admin</h1>
+    <p>For the NRI Wing team and chapter coordinators only.</p>
+    <label>Username<input name="username" required autocomplete="username"></label>
+    <label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+    <button class="btn" type="submit">Log in</button>
+    <div class="err" id="loginErr"></div>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <header><b>YSRCP NRI Wing · Admin</b><span class="who" id="who"></span><button class="btn ghost sm" id="logout">Log out</button></header>
+  <nav id="tabs">
+    <button data-tab="overview" class="on">Overview</button>
+    <button data-tab="tickets" data-admin>Help Desk<span class="badge hidden" id="bTickets"></span></button>
+    <button data-tab="meet" data-admin>Meet Jagan Sir<span class="badge hidden" id="bMeet"></span></button>
+    <button data-tab="volunteers" data-admin>Volunteers</button>
+    <button data-tab="teams" data-admin>Country committees</button>
+    <button data-tab="members">Members</button>
+    <button data-tab="whatsapp">WhatsApp requests<span class="badge hidden" id="bWa"></span></button>
+    <button data-tab="questions" data-admin>Questions</button>
+    <button data-tab="gallery" data-admin>Gallery</button>
+  </nav>
+  <main id="view"></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const KEY = "nri_admin_token";
+  let token = sessionStorage.getItem(KEY), me = null, tab = "overview";
+
+  const toast = (m) => { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2500); };
+  async function api(method, path, body) {
+    const res = await fetch("/api/admin" + path, { method, headers: { "Content-Type": "application/json", Authorization: "Bearer " + token }, body: body ? JSON.stringify(body) : undefined });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { logout(); throw new Error("Session expired – please log in again."); }
+    if (!res.ok) throw new Error(data.error || "Something went wrong.");
+    return data;
+  }
+  const date = (s) => s ? new Date(s.includes("T") ? s : s.replace(" ", "T") + "Z").toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const select = (value, options, attrs) => `<select ${attrs}>${options.map((o) => `<option ${o === value ? "selected" : ""}>${o}</option>`).join("")}</select>`;
+  const exportBtn = (what) => `<button class="btn ghost sm" data-export="${what}">⬇ Export CSV</button>`;
+  const table = (cols, rows) => rows.length ? `<div class="table-wrap"><table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>` : `<div class="table-wrap"><p class="empty">Nothing here yet.</p></div>`;
+
+  /* ---------- login ---------- */
+  $("#loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    $("#loginErr").textContent = "";
+    try {
+      const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(f) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Login failed.");
+      token = data.token; sessionStorage.setItem(KEY, token);
+      e.target.reset(); start();
+    } catch (err) { $("#loginErr").textContent = err.message; }
+  });
+  function logout() { token = null; sessionStorage.removeItem(KEY); $("#app").classList.add("hidden"); $("#loginView").classList.remove("hidden"); }
+  $("#logout").addEventListener("click", logout);
+
+  async function start() {
+    try {
+      const s = await api("GET", "/summary");
+      me = s.me;
+      $("#who").textContent = `${me.name} · ${me.role === "admin" ? "Admin" : "Coordinator – " + me.chapter}`;
+      document.querySelectorAll("[data-admin]").forEach((b) => b.classList.toggle("hidden", me.role !== "admin"));
+      $("#loginView").classList.add("hidden"); $("#app").classList.remove("hidden");
+      show(tab);
+    } catch (err) { if (token) toast(err.message); }
+  }
+
+  /* ---------- tabs ---------- */
+  $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) show(b.dataset.tab); });
+  async function show(name) {
+    tab = name;
+    document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+    const v = $("#view");
+    v.innerHTML = `<p class="empty">Loading…</p>`;
+    try { v.innerHTML = await VIEWS[name](); } catch (err) { v.innerHTML = `<p class="empty">${esc(err.message)}</p>`; }
+    refreshBadges();
+  }
+  async function refreshBadges() {
+    try {
+      const s = await api("GET", "/summary");
+      const set = (id, n) => { const el = $(id); el.textContent = n; el.classList.toggle("hidden", !n); };
+      set("#bTickets", s.ticketsOpen); set("#bMeet", s.meetNew); set("#bWa", s.whatsappNew);
+    } catch {}
+  }
+
+  const AP_DISTRICTS = ["Alluri Sitharama Raju","Anakapalli","Anantapur","Annamayya","Bapatla","Chittoor","Dr. B.R. Ambedkar Konaseema","East Godavari","Eluru","Guntur","Kakinada","Krishna","Kurnool","Nandyal","NTR","Palnadu","Parvathipuram Manyam","Prakasam","Sri Potti Sriramulu Nellore","Sri Sathya Sai","Srikakulam","Tirupati","Visakhapatnam","Vizianagaram","West Godavari","YSR Kadapa"];
+  const VIEWS = {
+    async overview() {
+      const s = await api("GET", "/summary");
+      return `<div class="cards">
+          <div class="card"><span>Registered members</span><b>${s.members}</b></div>
+          ${me.role === "admin" ? `<div class="card"><span>Open help tickets</span><b>${s.ticketsOpen}</b></div>
+          <div class="card alert"><span>Urgent tickets open</span><b>${s.ticketsUrgent}</b></div>
+          <div class="card"><span>Waiting for a volunteer</span><b>${s.ticketsUnassigned}</b></div>
+          <div class="card alert"><span>Past target date</span><b>${s.ticketsOverdue}</b></div>
+          <div class="card"><span>New meeting requests</span><b>${s.meetNew}</b></div>` : ""}
+          <div class="card"><span>New WhatsApp requests</span><b>${s.whatsappNew}</b></div>
+        </div>
+        ${s.byCountry.length ? `<div class="bar"><h2>Members by country</h2></div>` + table(["Country", "Members"], s.byCountry.map((c) => `<tr><td>${esc(c.country)}</td><td><b>${c.n}</b></td></tr>`)) : ""}`;
+    },
+    async tickets() {
+      const [{ tickets }, { volunteers }] = await Promise.all([api("GET", "/tickets"), api("GET", "/volunteers")]);
+      const active = volunteers.filter((v) => v.active);
+      const volSelect = (t) => {
+        const near = active.filter((v) => v.district === t.district), other = active.filter((v) => v.district !== t.district);
+        const opt = (v) => `<option value="${v.id}" ${v.id === t.volunteer_id ? "selected" : ""}>${esc(v.name)} – ${esc(v.district)} (${v.open_tasks} open)</option>`;
+        return `<select data-vol-for="${esc(t.ticket_no)}"><option value="">${active.length ? "Choose volunteer…" : "Add volunteers first"}</option>${near.length ? `<optgroup label="${esc(t.district)}">${near.map(opt).join("")}</optgroup>` : ""}${other.length ? `<optgroup label="Other districts">${other.map(opt).join("")}</optgroup>` : ""}</select>`;
+      };
+      const wa = (p) => esc(String(p || "").replace(/[^\d]/g, ""));
+      return `<div class="bar"><h2>Help Desk tickets</h2>${exportBtn("tickets")}</div>
+        <p class="muted" style="margin-top:-6px">Raise → <b>Assign</b> a volunteer from the ticket's district (they get a private WhatsApp link) → they update <b>In progress</b> / <b>Resolved</b> → the member sees every step.</p>` + table(
+        ["Ticket", "Received / target", "From", "Category", "Issue", "Volunteer", "Status", "Notes (admin only)"],
+        tickets.map((t) => `<tr class="${t.urgent && t.status !== "Resolved" ? "urgent" : ""}">
+          <td><b>#${esc(t.ticket_no)}</b>${t.urgent ? '<br><span class="pill red">URGENT</span>' : ""}${t.overdue ? '<br><span class="pill amber">Past target</span>' : ""}<br><button class="btn ghost sm" data-history="${esc(t.ticket_no)}" style="margin-top:6px">History</button></td>
+          <td class="muted">${date(t.created_at)}<br>🎯 ${date(t.due_at)}${t.resolved_at ? `<br>✅ ${date(t.resolved_at)}` : ""}</td>
+          <td>${esc(t.name)}<br><span class="muted">${esc(t.country)}</span>${t.contact_phone ? `<br><a href="https://wa.me/${wa(t.contact_phone)}" target="_blank" rel="noopener">${esc(t.contact_phone)}</a>` : ""}</td>
+          <td>${esc(t.category)}<br><span class="muted">${esc(t.district)}</span></td>
+          <td class="desc">${esc(t.description)}${t.resolution ? `<br><span class="pill">Done</span> ${esc(t.resolution)}` : ""}</td>
+          <td>${t.status === "Resolved" ? esc(t.volunteer_name || "–") : `<div class="assign">${volSelect(t)}<button class="btn sm" data-assign="${esc(t.ticket_no)}">${t.volunteer_id ? "Re-assign" : "Assign"}</button></div>${t.volunteer_id ? `<span class="muted">Now: ${esc(t.volunteer_name)}</span>` : ""}`}</td>
+          <td>${select(t.status, ["Received", "Assigned", "In progress", "Resolved"], `data-ticket="${esc(t.ticket_no)}" data-was="${esc(t.status)}"`)}</td>
+          <td><input data-notes="${esc(t.ticket_no)}" value="${esc(t.notes || "")}" placeholder="Add a note…"></td></tr>`));
+    },
+    async teams() {
+      const { roles, leaders } = await api("GET", "/country-teams");
+      const countries = [...new Set(["USA", "Canada", "United Kingdom", "Ireland", "Germany", "Netherlands", "UAE", "Qatar", "Kuwait", "Saudi Arabia", "Oman", "Bahrain", "Singapore", "Malaysia", "Japan", "Australia", "New Zealand", "South Africa", ...leaders.map((l) => l.country)])];
+      return `<div class="bar"><h2>Country committees (${leaders.length})</h2></div>
+        <p class="muted" style="margin-top:-6px">Shown on the website under My City → “Country-wise NRI committees”. Positions without a name show as “To be announced”.</p>
+        <form class="vol-form" id="teamForm">
+          <label>Country<input name="country" list="teamCountries" required maxlength="60" placeholder="USA"></label>
+          <datalist id="teamCountries">${countries.map((c) => `<option>${esc(c)}</option>`).join("")}</datalist>
+          <label>Position<select name="role" required>${roles.map((r) => `<option>${esc(r)}</option>`).join("")}</select></label>
+          <label>Full name<input name="name" required maxlength="80"></label>
+          <label>City<input name="city" maxlength="60" placeholder="Dallas"></label>
+          <label>Photo (optional)<input name="photoFile" type="file" accept="image/*"></label>
+          <button class="btn">+ Add</button>
+        </form>` + table(
+        ["Photo", "Country", "Position", "Name", "City", ""],
+        leaders.map((l) => `<tr><td>${l.photo ? `<img src="${l.photo}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : `<span class="muted">–</span>`}</td>
+          <td><b>${esc(l.country)}</b></td><td>${esc(l.role)}</td><td>${esc(l.name)}</td><td>${esc(l.city || "")}</td>
+          <td><button class="btn ghost sm" data-del-leader="${l.id}" data-name="${esc(l.name)}">Remove</button></td></tr>`));
+    },
+    async volunteers() {
+      const { volunteers } = await api("GET", "/volunteers");
+      const wa = (p) => esc(String(p || "").replace(/[^\d]/g, ""));
+      return `<div class="bar"><h2>Help Desk volunteers (${volunteers.filter((v) => v.active).length} active)</h2></div>
+        <form class="vol-form" id="volForm">
+          <label>Name<input name="name" required maxlength="80" placeholder="Ravi Kumar"></label>
+          <label>WhatsApp number<input name="phone" required type="tel" placeholder="+91 98xxxxxxxx"></label>
+          <label>District<select name="district" required><option value="">Choose…</option>${AP_DISTRICTS.map((d) => `<option>${d}</option>`).join("")}</select></label>
+          <button class="btn">+ Add volunteer</button>
+        </form>` + table(
+        ["Name", "WhatsApp", "District", "Open tasks", "Resolved", "Active"],
+        volunteers.map((v) => `<tr style="${v.active ? "" : "opacity:.55"}"><td><b>${esc(v.name)}</b></td>
+          <td><a href="https://wa.me/${wa(v.phone)}" target="_blank" rel="noopener">${esc(v.phone)}</a></td>
+          <td>${esc(v.district)}</td><td>${v.open_tasks}</td><td>${v.resolved_tasks}</td>
+          <td><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" data-vol="${v.id}" ${v.active ? "checked" : ""}> Active</label></td></tr>`));
+    },
+    async meet() {
+      const { requests } = await api("GET", "/meet-requests");
+      return `<div class="bar"><h2>Meet Jagan Sir – requests</h2>${exportBtn("meet-requests")}</div>` + table(
+        ["Ref", "Received", "Name", "Contact", "From", "Type", "People", "Month / place", "Purpose", "Status"],
+        requests.map((r) => `<tr><td><b>#${esc(r.ref)}</b></td><td class="muted">${date(r.created_at)}</td><td>${esc(r.name)}</td>
+          <td>${esc(r.phone)}<br><span class="muted">${esc(r.email)}</span></td><td>${esc(r.place)}</td><td>${esc(r.type)}</td><td>${r.people}</td>
+          <td>${esc(r.month || "")}<br><span class="muted">${esc(r.location || "")}</span></td><td class="desc">${esc(r.purpose)}</td>
+          <td>${select(r.status, ["New", "Reviewed", "Scheduled", "Declined"], `data-meet="${esc(r.ref)}"`)}</td></tr>`));
+    },
+    async members(q = "") {
+      const { members } = await api("GET", "/members?q=" + encodeURIComponent(q));
+      return `<div class="bar"><h2>Members${me.role === "coordinator" ? " – " + esc(me.chapter) : ""} (${members.length})</h2>
+          <input id="memberSearch" placeholder="Search name, email, city…" value="${esc(q)}">${exportBtn("members")}</div>` + table(
+        ["Member no.", "Joined", "Name", "Contact", "Lives in", "Chapter", "Profession", "Home district / constituency"],
+        members.map((m) => `<tr><td><b>${esc(m.member_no)}</b></td><td class="muted">${date(m.created_at)}</td><td>${esc(m.name)}</td>
+          <td>${esc(m.email)}<br><span class="muted">${esc(m.phone)}</span></td><td>${esc(m.city)}, ${esc(m.country)}</td><td>${esc(m.chapter || "–")}</td>
+          <td>${esc(m.profession || "")}</td><td>${esc(m.district || "")}<br><span class="muted">${esc(m.constituency || "")}</span></td></tr>`));
+    },
+    async whatsapp() {
+      const { requests } = await api("GET", "/whatsapp-requests");
+      return `<div class="bar"><h2>WhatsApp group requests</h2>${exportBtn("whatsapp-requests")}</div>` + table(
+        ["Received", "Chapter", "Name", "WhatsApp", "Status"],
+        requests.map((r) => `<tr><td class="muted">${date(r.created_at)}</td><td>${esc(r.chapter)}</td><td>${esc(r.name)}</td>
+          <td><a href="https://wa.me/${esc(r.phone.replace(/[^\d]/g, ""))}" target="_blank" rel="noopener">${esc(r.phone)}</a></td>
+          <td>${select(r.status, ["New", "Invited", "Declined"], `data-wa="${r.id}"`)}</td></tr>`));
+    },
+    async questions() {
+      const { questions } = await api("GET", "/questions");
+      return `<div class="bar"><h2>Live with Leaders – questions</h2></div>` + table(
+        ["Received", "From", "Question", "Shown on website"],
+        questions.map((q) => `<tr><td class="muted">${date(q.created_at)}</td><td>${esc(q.name)}</td><td class="desc">${esc(q.text)}</td>
+          <td><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" data-q="${q.id}" ${q.hidden ? "" : "checked"}> Show</label></td></tr>`));
+    },
+    async gallery() {
+      const { status: st, photos } = await api("GET", "/gallery");
+      const info = st.configured
+        ? `<p class="muted">New photos from the wing's Facebook / Instagram are added automatically every few hours. Last check: <b>${st.lastRun ? date(st.lastRun) : "not yet"}</b>${st.lastRun ? ` · ${st.added} new` : ""}.${st.lastError ? `<br><span style="color:#b42318">Problem: ${esc(st.lastError)}</span>` : ""}</p>`
+        : `<p class="muted">Facebook / Instagram are <b>not connected yet</b>. Add the Page token to <code>server/.env</code> (see server/README.md), then restart the server.</p>`;
+      return `<div class="bar"><h2>Gallery – Facebook & Instagram photos (${photos.length})</h2>${st.configured ? `<button class="btn sm" data-sync>↻ Check for new photos now</button>` : ""}</div>${info}` + table(
+        ["Photo", "From", "Posted", "Text", "Shown on website"],
+        photos.map((g) => `<tr><td><a href="${esc(g.url)}" target="_blank" rel="noopener"><img src="${esc(g.url)}" alt="" style="width:84px;height:64px;object-fit:cover;border-radius:8px"></a></td>
+          <td>${g.source === "facebook" ? "Facebook" : "Instagram"}${g.permalink ? `<br><a href="${esc(g.permalink)}" target="_blank" rel="noopener" class="muted">open post ↗</a>` : ""}</td>
+          <td class="muted">${date(g.posted_at || g.created_at)}</td><td class="desc">${esc((g.caption || "").slice(0, 220))}</td>
+          <td><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" data-gal="${g.id}" ${g.hidden ? "" : "checked"}> Show</label></td></tr>`));
+    }
+  };
+
+  /* ---------- actions ---------- */
+  document.addEventListener("change", async (e) => {
+    const t = e.target;
+    try {
+      if (t.dataset.ticket) {
+        let resolution;
+        if (t.value === "Resolved") {
+          resolution = prompt("What was done? (the member will see this)");
+          if (resolution === null) { t.value = t.dataset.was; return; }
+        }
+        await api("PATCH", "/tickets/" + t.dataset.ticket, { status: t.value, resolution }); toast("Ticket updated"); show("tickets");
+      }
+      if (t.dataset.notes) { await api("PATCH", "/tickets/" + t.dataset.notes, { notes: t.value }); toast("Note saved"); }
+      if (t.dataset.vol) { await api("PATCH", "/volunteers/" + t.dataset.vol, { active: t.checked }); toast(t.checked ? "Volunteer active" : "Volunteer paused"); show("volunteers"); }
+      if (t.dataset.meet) { await api("PATCH", "/meet-requests/" + t.dataset.meet, { status: t.value }); toast("Request updated"); refreshBadges(); }
+      if (t.dataset.wa) { await api("PATCH", "/whatsapp-requests/" + t.dataset.wa, { status: t.value }); toast("Request updated"); refreshBadges(); }
+      if (t.dataset.q) { await api("PATCH", "/questions/" + t.dataset.q, { hidden: !t.checked }); toast(t.checked ? "Question shown" : "Question hidden"); }
+      if (t.dataset.gal) { await api("PATCH", "/gallery/" + t.dataset.gal, { hidden: !t.checked }); toast(t.checked ? "Photo shown in gallery" : "Photo hidden from gallery"); }
+    } catch (err) { toast(err.message); }
+  });
+  let searchTimer;
+  document.addEventListener("input", (e) => {
+    if (e.target.id !== "memberSearch") return;
+    clearTimeout(searchTimer);
+    const q = e.target.value;
+    searchTimer = setTimeout(async () => { $("#view").innerHTML = await VIEWS.members(q); const s = $("#memberSearch"); s.focus(); s.setSelectionRange(q.length, q.length); }, 350);
+  });
+  // photo → square 320px JPEG (same as member photos)
+  const squarePhoto = (file) => new Promise((resolve) => {
+    if (!file || !file.type.startsWith("image/")) return resolve(null);
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const S = 320, side = Math.min(img.width, img.height), c = document.createElement("canvas"); c.width = c.height = S;
+      c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+      URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+  document.addEventListener("submit", async (e) => {
+    if (e.target.id !== "teamForm") return;
+    e.preventDefault();
+    const f = Object.fromEntries(new FormData(e.target));
+    const photo = await squarePhoto(e.target.elements.photoFile.files[0]);
+    delete f.photoFile;
+    try { await api("POST", "/country-teams", { ...f, photo }); toast(`${f.name} added as ${f.role}`); show("teams"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("click", async (e) => {
+    const d = e.target.closest("[data-del-leader]"); if (!d) return;
+    if (!confirm(`Remove ${d.dataset.name} from the committee?`)) return;
+    try { await api("DELETE", "/country-teams/" + d.dataset.delLeader); toast("Removed"); show("teams"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("submit", async (e) => {
+    if (e.target.id !== "volForm") return;
+    e.preventDefault();
+    try { await api("POST", "/volunteers", Object.fromEntries(new FormData(e.target))); toast("Volunteer added"); show("volunteers"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("click", async (e) => {
+    const as = e.target.closest("[data-assign]");
+    if (as) {
+      const no = as.dataset.assign, sel = document.querySelector(`[data-vol-for="${no}"]`);
+      if (!sel.value) return toast("Choose a volunteer first");
+      try {
+        const r = await api("POST", `/tickets/${no}/assign`, { volunteerId: Number(sel.value) });
+        await show("tickets");
+        const cell = document.querySelector(`[data-assign="${no}"]`).closest("td");
+        cell.insertAdjacentHTML("beforeend", `<br><a class="wa-link" href="${esc(r.whatsapp)}" target="_blank" rel="noopener">📲 Send task link on WhatsApp</a><br><a class="wa-link" href="${esc(r.link)}" target="_blank" rel="noopener" style="color:var(--blue)">Open task page</a>`);
+        toast("Assigned – now send the WhatsApp link");
+      } catch (err) { toast(err.message); }
+      return;
+    }
+    const hb = e.target.closest("[data-history]");
+    if (hb) {
+      const row = hb.closest("tr"), next = row.nextElementSibling;
+      if (next && next.classList.contains("history")) { next.remove(); return; }
+      try {
+        const { history } = await api("GET", `/tickets/${hb.dataset.history}/history`);
+        row.insertAdjacentHTML("afterend", `<tr class="history"><td colspan="8"><ol class="tl">${history.map((h) => `<li><b>${esc(h.status)}</b> · <span class="muted">${date(h.created_at)}${h.by_who ? " · " + esc(h.by_who) : ""}</span>${h.note ? " – " + esc(h.note) : ""}</li>`).join("") || "<li>No history yet.</li>"}</ol></td></tr>`);
+      } catch (err) { toast(err.message); }
+      return;
+    }
+    const sync = e.target.closest("[data-sync]");
+    if (sync) {
+      sync.disabled = true; sync.textContent = "Checking…";
+      try { const { status: st } = await api("POST", "/gallery/sync"); toast(st.lastError ? "Finished with a problem – see below" : `${st.added} new photo(s) added`); } catch (err) { toast(err.message); }
+      show("gallery"); return;
+    }
+    const b = e.target.closest("[data-export]"); if (!b) return;
+    const res = await fetch("/api/admin/export/" + b.dataset.export, { headers: { Authorization: "Bearer " + token } });
+    if (!res.ok) return toast("Export failed.");
+    const url = URL.createObjectURL(await res.blob());
+    const a = document.createElement("a"); a.href = url; a.download = `${b.dataset.export}-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  if (token) start();
+})();
+</script>
+</body>
+</html>

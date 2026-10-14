@@ -1,0 +1,22 @@
+{
+  "name": "ysrcp-nri-wing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YSRCP NRI Wing website + backend (Express + Postgres/Supabase, deployable on Vercel)",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/server.js",
+    "create-admin": "node server/create-admin.js",
+    "import-sqlite": "node server/scripts/sqlite-to-postgres.js",
+    "build-geo": "node server/scripts/build-geo.js"
+  },
+  "dependencies": {
+    "express": "5.2.0",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "city-timezones": "1.3.4",
+    "countries-list": "3.4.1"
+  }
+}

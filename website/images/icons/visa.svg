@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe9ff"/></linearGradient><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d27f"/><stop offset="1" stop-color="#0f9d58"/></linearGradient><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7bff"/><stop offset="1" stop-color="#0b3a8c"/></linearGradient></defs><ellipse cx="50" cy="93" rx="34" ry="5" fill="#000" opacity=".18"/><polygon points="12,67 50,86 50,94 12,75" fill="#1652c4"/><polygon points="50,86 88,67 88,75 50,94" fill="#0b3a8c"/><polygon points="50,48 88,67 50,86 12,67" fill="url(#t)"/>
+<polygon points="34,62 64,77 64,73 34,58" fill="#0b2a66"/>
+<polygon points="30,20 62,8 66,64 34,76" fill="url(#b)"/>
+<polygon points="30,20 62,8 62,10 31,22" fill="#5b95ff"/>
+<g stroke="#5cf5a3" stroke-width="1.4" fill="none" opacity=".9">
+<path d="M40 40 L48 30 L58 34 L54 48 L44 52 Z M48 30 L54 48 M40 40 L58 34"/>
+</g>
+<g fill="#5cf5a3"><circle cx="40" cy="40" r="2.4"/><circle cx="48" cy="30" r="2.4"/><circle cx="58" cy="34" r="2.4"/><circle cx="54" cy="48" r="2.4"/><circle cx="44" cy="52" r="2.4"/></g>
+<rect x="38" y="58" width="20" height="3" rx="1.5" transform="skewY(-20) translate(0 18)" fill="#fff" opacity=".7"/>
+<circle cx="76" cy="30" r="9" fill="url(#g)"/>
+<path d="M71 30l3.5 3.5L81 27" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

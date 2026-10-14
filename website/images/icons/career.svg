@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe9ff"/></linearGradient><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34d27f"/><stop offset="1" stop-color="#0f9d58"/></linearGradient><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7bff"/><stop offset="1" stop-color="#0b3a8c"/></linearGradient></defs><ellipse cx="50" cy="93" rx="34" ry="5" fill="#000" opacity=".18"/><polygon points="12,67 50,86 50,94 12,75" fill="#1652c4"/><polygon points="50,86 88,67 88,75 50,94" fill="#0b3a8c"/><polygon points="50,48 88,67 50,86 12,67" fill="url(#t)"/>
+<polygon points="46,60 54,60 56,70 44,70" fill="#8fa2c9"/>
+<rect x="18" y="14" width="64" height="44" rx="5" fill="#0b2a66"/>
+<rect x="21" y="17" width="58" height="38" rx="3" fill="url(#b)"/>
+<circle cx="35" cy="28" r="5" fill="#fff"/><path d="M26 46c0-7 4-11 9-11s8 3 9 7" fill="#fff"/>
+<circle cx="65" cy="28" r="5" fill="#5cf5a3"/><path d="M74 46c0-7-4-11-9-11s-8 3-9 7" fill="#5cf5a3"/>
+<path d="M42 44 L50 40 L58 44 L50 49 Z" fill="#f5b800"/>
+<path d="M44 44 l6 3 6-3" fill="none" stroke="#b88a00" stroke-width="1.2"/>
+<g fill="#5cf5a3" opacity=".8"><circle cx="50" cy="24" r="1.5"/><circle cx="46" cy="22" r="1"/><circle cx="54" cy="22" r="1"/></g>
+</svg>

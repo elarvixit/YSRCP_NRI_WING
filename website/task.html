@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Volunteer Task | YSRCP NRI Wing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --blue: #0b3a8c; --blue-2: #1652c4; --green: #0f9d58; --ink: #0f1b33; --ink-2: #4a5878; --line: #e3e9f4; --bg: #f3f6fc; --red: #c62828; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Outfit, system-ui, sans-serif; background: var(--bg); color: var(--ink); }
+  header { background: linear-gradient(135deg, var(--blue), var(--blue-2) 60%, var(--green)); color: #fff; padding: 18px 16px 54px; }
+  header .wrap { max-width: 640px; margin: auto; }
+  header b { font-size: 1.1rem; }
+  header small { display: block; opacity: .85; }
+  main { max-width: 640px; margin: -38px auto 40px; padding: 0 16px; }
+  .card { background: #fff; border-radius: 18px; padding: 20px; box-shadow: 0 10px 30px -18px rgba(11,58,140,.5); margin-bottom: 14px; }
+  h1 { font-size: 1.35rem; margin: 0 0 4px; }
+  .muted { color: var(--ink-2); font-size: .9rem; }
+  .pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .78rem; font-weight: 700; background: #e7f6ee; color: var(--green); margin: 4px 4px 0 0; }
+  .pill.red { background: #fdecec; color: var(--red); }
+  .pill.blue { background: #e8effc; color: var(--blue); }
+  dl { display: grid; grid-template-columns: 110px 1fr; gap: 8px 12px; margin: 14px 0 0; }
+  dt { color: var(--ink-2); font-size: .85rem; }
+  dd { margin: 0; font-weight: 600; word-break: break-word; }
+  .desc { white-space: pre-line; background: var(--bg); border-radius: 12px; padding: 12px; margin-top: 14px; }
+  .contact { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 12px; padding: 12px 16px; font: 700 .95rem Outfit, sans-serif; cursor: pointer; text-decoration: none; }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.green { background: var(--green); color: #fff; }
+  .btn.ghost { background: #fff; color: var(--blue); border: 1.5px solid var(--blue); }
+  .btn:disabled { opacity: .6; cursor: default; }
+  textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px; font: 1rem Outfit, sans-serif; min-height: 96px; resize: vertical; margin: 10px 0; }
+  textarea:focus { outline: none; border-color: var(--blue-2); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  ol.tl { list-style: none; padding: 0; margin: 10px 0 0; }
+  ol.tl li { position: relative; padding: 0 0 14px 22px; border-left: 2px solid var(--line); margin-left: 6px; }
+  ol.tl li::before { content: ""; position: absolute; left: -7px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--green); }
+  ol.tl li:last-child { border-color: transparent; }
+  .done { text-align: center; padding: 26px 20px; }
+  .done big { font-size: 2.6rem; display: block; }
+  .err { color: var(--red); }
+  @media (max-width: 420px) { .row { grid-template-columns: 1fr; } dl { grid-template-columns: 92px 1fr; } }
+</style>
+</head>
+<body>
+<header><div class="wrap"><b>YSRCP NRI Wing · Help Desk</b><small>Volunteer task</small></div></header>
+<main id="app"><div class="card"><p class="muted">Loading…</p></div></main>
+<script>
+(() => {
+  const app = document.getElementById("app");
+  const token = new URLSearchParams(location.search).get("t") || "";
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const when = (s) => s ? new Date(s.includes("T") ? s : s.replace(" ", "T") + "Z").toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const digits = (p) => String(p || "").replace(/[^\d]/g, "");
+
+  async function load() {
+    try {
+      const res = await fetch("/api/task/" + encodeURIComponent(token));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not open this task.");
+      render(data.task);
+    } catch (err) { app.innerHTML = `<div class="card"><h1>Task not found</h1><p class="err">${esc(err.message)}</p></div>`; }
+  }
+
+  function render(t) {
+    const resolved = t.status === "Resolved";
+    const overdue = !resolved && t.due_at && new Date(t.due_at.replace(" ", "T") + "Z") < new Date();
+    app.innerHTML = `
+      <div class="card">
+        <h1>Request #${esc(t.id)}</h1>
+        <div><span class="pill blue">${esc(t.status)}</span>${t.urgent ? '<span class="pill red">🚨 URGENT · 24/7</span>' : ""}${overdue ? '<span class="pill red">Past target date</span>' : ""}</div>
+        <dl>
+          <dt>Category</dt><dd>${esc(t.cat)}</dd>
+          <dt>Home district</dt><dd>${esc(t.district)}</dd>
+          <dt>From</dt><dd>${esc(t.name)}<br><span class="muted">${esc(t.livesIn)}</span></dd>
+          <dt>Raised</dt><dd>${when(t.created_at)}</dd>
+          <dt>Target</dt><dd>${when(t.due_at)}</dd>
+        </dl>
+        <div class="desc">${esc(t.description)}</div>
+        ${t.phone ? `<div class="contact">
+          <a class="btn green" href="https://wa.me/${digits(t.phone)}" target="_blank" rel="noopener">WhatsApp ${esc(t.name.split(/\s+/)[0])}</a>
+          <a class="btn ghost" href="tel:${esc(t.phone.replace(/\s+/g, ""))}">📞 Call ${esc(t.phone)}</a></div>` : ""}
+      </div>
+      ${resolved ? `<div class="card done"><big>✅</big><b>Marked as resolved</b><p class="muted">${esc(t.resolution || "")}</p><p class="muted">Thank you for helping, ${esc(t.volunteerName.split(/\s+/)[0])} garu 🙏</p></div>` : `
+      <div class="card">
+        <b>Update the family</b>
+        <p class="muted">Every update shows on the member's “My requests” page.</p>
+        <textarea id="note" maxlength="800" placeholder="What have you done? e.g. Visited the family, applied for the certificate at the MRO office…"></textarea>
+        <div class="row">
+          <button class="btn primary" data-status="In progress">🔄 Working on it</button>
+          <button class="btn green" data-status="Resolved">✅ Mark resolved</button>
+        </div>
+        <p class="muted" id="msg"></p>
+      </div>`}
+      <div class="card"><b>History</b><ol class="tl">${t.history.map((h) => `<li><b>${esc(h.status)}</b> <span class="muted">· ${when(h.created_at)}${h.by_who ? " · " + esc(h.by_who) : ""}</span>${h.note ? `<br>${esc(h.note)}` : ""}</li>`).join("")}</ol></div>`;
+  }
+
+  app.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-status]"); if (!b) return;
+    const status = b.dataset.status, note = document.getElementById("note").value.trim(), msg = document.getElementById("msg");
+    if (status === "Resolved" && note.length < 5) { msg.innerHTML = '<span class="err">Please write what was done before marking it resolved.</span>'; return; }
+    if (status === "Resolved" && !confirm("Mark this request as resolved? The member will see your note.")) return;
+    app.querySelectorAll("[data-status]").forEach((x) => (x.disabled = true));
+    try {
+      const res = await fetch("/api/task/" + encodeURIComponent(token), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, note }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save.");
+      await load();
+    } catch (err) { msg.innerHTML = `<span class="err">${esc(err.message)}</span>`; app.querySelectorAll("[data-status]").forEach((x) => (x.disabled = false)); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

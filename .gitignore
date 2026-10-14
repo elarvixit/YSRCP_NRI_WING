@@ -1,0 +1,23 @@
+# Only the website, the backend and the deployment files go into the repository.
+/*
+!/website/
+!/server/
+!/api/
+!/package.json
+!/package-lock.json
+!/vercel.json
+!/README.md
+!/.gitignore
+
+# never commit data, secrets or installed packages
+node_modules/
+server/data/
+.env
+.env.*
+!server/.env.example
+*.log
+.vercel/
+
+# internal photo-preview pages (not part of the public site)
+website/meet-preview.html
+website/photo-finds.html
