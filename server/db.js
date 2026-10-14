@@ -172,6 +172,22 @@ CREATE TABLE IF NOT EXISTS app_state (
   value      TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Supabase: block direct access through the public API (anon / authenticated keys).
+-- The website's server connects as the database owner, which is not affected.
+ALTER TABLE members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE volunteers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ticket_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE meet_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE whatsapp_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE task_done ENABLE ROW LEVEL SECURITY;
+ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE country_leaders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app_state ENABLE ROW LEVEL SECURITY;
 `;
 
 /* ---------- driver: pg (Supabase) or PGlite (local) ---------- */
