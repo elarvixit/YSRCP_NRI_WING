@@ -673,8 +673,8 @@
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   $("#quickGreet").innerHTML = myChapter
-    ? `<span class="qg-flag">${flag(myChapter, 40)}</span><div><b>Namaskaram 🙏 ${greet}!</b><span>You seem to be in <b>${esc(myChapter.country)}</b> – your nearest YSRCP NRI city is <b>${esc(myChapter.city)}</b> (${myChapter.members.toLocaleString("en-IN")} members).</span></div><button class="btn btn-light btn-sm" type="button" id="qgGo">Open my city →</button>`
-    : `<span class="qg-flag">🙏</span><div><b>Namaskaram! ${greet}!</b><span>Wherever you are in the world, the YSRCP NRI family is with you. Choose what you need below.</span></div>`;
+    ? `<span class="qg-flag">${flag(myChapter, 40)}</span><div><b>${greet}!</b><span>You seem to be in <b>${esc(myChapter.country)}</b> – your nearest YSRCP NRI city is <b>${esc(myChapter.city)}</b> (${myChapter.members.toLocaleString("en-IN")} members).</span></div><button class="btn btn-light btn-sm" type="button" id="qgGo">Open my city →</button>`
+    : `<span class="qg-flag">🙏</span><div><b>${greet}!</b><span>Wherever you are in the world, the YSRCP NRI family is with you. Choose what you need below.</span></div>`;
   $("#qgGo")?.addEventListener("click", () => showCountry(myChapter.country));
 
 
