@@ -25,17 +25,18 @@ const chapterFilter = (req) => (req.admin.role === "coordinator" ? req.admin.cha
 r.get("/summary", async (req, res) => {
   const ch = chapterFilter(req);
   const count = async (sql, ...a) => (await one(sql, ...a)).n;
-  const [members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, whatsappNew, byCountry] = await Promise.all([
+  const [members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, tasksPending, whatsappNew, byCountry] = await Promise.all([
     ch ? count("SELECT COUNT(*) AS n FROM ysr_nri_wing_members WHERE chapter = ?", ch) : count("SELECT COUNT(*) AS n FROM ysr_nri_wing_members"),
     count("SELECT COUNT(*) AS n FROM ysr_nri_wing_tickets WHERE status <> 'Resolved'"),
     count("SELECT COUNT(*) AS n FROM ysr_nri_wing_tickets WHERE urgent = 1 AND status <> 'Resolved'"),
     count("SELECT COUNT(*) AS n FROM ysr_nri_wing_tickets WHERE status <> 'Resolved' AND due_at < now()"),
     count("SELECT COUNT(*) AS n FROM ysr_nri_wing_tickets WHERE status <> 'Resolved' AND volunteer_id IS NULL"),
     count("SELECT COUNT(*) AS n FROM ysr_nri_wing_meet_requests WHERE status = 'New'"),
+    count("SELECT COUNT(*) AS n FROM ysr_nri_wing_task_done WHERE status = 'pending'"),
     ch ? count("SELECT COUNT(*) AS n FROM ysr_nri_wing_whatsapp_requests WHERE status = 'New' AND chapter = ?", ch) : count("SELECT COUNT(*) AS n FROM ysr_nri_wing_whatsapp_requests WHERE status = 'New'"),
     ch ? [] : all("SELECT country, COUNT(*) AS n FROM ysr_nri_wing_members GROUP BY country ORDER BY n DESC")
   ]);
-  res.json({ me: req.admin, members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, whatsappNew, byCountry });
+  res.json({ me: req.admin, members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, tasksPending, whatsappNew, byCountry });
 });
 
 /* ---------- members ---------- */
@@ -129,6 +130,43 @@ r.post("/volunteers", requireFullAdmin, async (req, res) => {
 r.patch("/volunteers/:id", requireFullAdmin, async (req, res) => {
   await run("UPDATE ysr_nri_wing_volunteers SET active = ? WHERE id = ?", req.body && req.body.active ? 1 : 0, U.id(req.params.id));
   res.json({ ok: true });
+});
+
+/* ---------- volunteer task proofs ---------- */
+r.get("/task-proofs", requireFullAdmin, async (req, res) => {
+  const st = ["pending", "approved", "rejected"].includes(req.query.status) ? req.query.status : null;
+  const rows = await all(`SELECT t.member_id, t.task_id, t.status, t.proof_url, t.proof_image, t.proof_note, t.review_note, t.reviewed_by, t.reviewed_at,
+                                 t.created_at, t.updated_at, m.name, m.member_no, m.city, m.country, m.phone
+                          FROM ysr_nri_wing_task_done t JOIN ysr_nri_wing_members m ON m.id = t.member_id
+                          ${st ? "WHERE t.status = ?" : ""}
+                          ORDER BY (t.status = 'pending') DESC, t.updated_at DESC LIMIT 300`, ...(st ? [st] : []));
+  res.json({ titles: U.TASK_TITLES, points: U.TASK_POINTS, proofs: rows });
+});
+r.patch("/task-proofs/:memberId/:taskId", requireFullAdmin, async (req, res) => {
+  const status = U.oneOf(req.body && req.body.status, ["approved", "rejected", "pending"], "status");
+  const note = U.text(req.body && req.body.note, "Reason", { max: 300, required: status === "rejected" }) || null;
+  const info = await run(`UPDATE ysr_nri_wing_task_done SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = now(), updated_at = now()
+                          WHERE member_id = ? AND task_id = ?`, status, note, "Admin " + req.admin.name, U.id(req.params.memberId),
+                          U.oneOf(req.params.taskId, Object.keys(U.TASK_POINTS), "task"));
+  if (!info.changes) return res.status(404).json({ error: "Submission not found." });
+  res.json({ ok: true });
+});
+r.get("/task-links", requireFullAdmin, async (_req, res) => {
+  const row = await one("SELECT value FROM ysr_nri_wing_app_state WHERE key = 'task_links'");
+  let links = {};
+  try { links = row ? JSON.parse(row.value) : {}; } catch {}
+  res.json({ titles: U.TASK_TITLES, links });
+});
+r.put("/task-links", requireFullAdmin, async (req, res) => {
+  const links = {};
+  for (const id of Object.keys(U.TASK_TITLES)) {
+    const v = U.text(req.body && req.body[id], "Link", { max: 500, required: false });
+    if (v && !/^https?:\/\/\S+$/i.test(v)) throw new U.BadRequest("Links must start with https://");
+    if (v) links[id] = v;
+  }
+  await run(`INSERT INTO ysr_nri_wing_app_state (key, value, updated_at) VALUES ('task_links', ?, now())
+             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, JSON.stringify(links));
+  res.json({ ok: true, links });
 });
 
 /* ---------- Meet Jagan Sir ---------- */

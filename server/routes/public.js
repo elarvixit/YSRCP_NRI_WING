@@ -15,7 +15,7 @@ const publicMember = (m) => m && {
   photo: m.photo || null
 };
 const pointsOf = async (memberId) => {
-  const done = (await all("SELECT task_id FROM ysr_nri_wing_task_done WHERE member_id = ?", memberId)).map((x) => x.task_id);
+  const done = (await all("SELECT task_id FROM ysr_nri_wing_task_done WHERE member_id = ? AND status = 'approved'", memberId)).map((x) => x.task_id);
   return U.REGISTER_POINTS + done.reduce((s, t) => s + (U.TASK_POINTS[t] || 0), 0);
 };
 
@@ -81,14 +81,15 @@ r.get("/me", requireMember, async (req, res) => {
   if (!row) return res.status(404).json({ error: "Member not found." });
   const [rsvps, tasks, tickets, points] = await Promise.all([
     all("SELECT event_id FROM ysr_nri_wing_rsvps WHERE member_id = ?", row.id),
-    all("SELECT task_id FROM ysr_nri_wing_task_done WHERE member_id = ?", row.id),
+    all("SELECT task_id, status, review_note, proof_url, proof_note, created_at, updated_at FROM ysr_nri_wing_task_done WHERE member_id = ?", row.id),
     all("SELECT * FROM ysr_nri_wing_tickets WHERE member_id = ? ORDER BY id DESC", row.id),
     pointsOf(row.id)
   ]);
   res.json({
     member: publicMember(row),
     rsvps: rsvps.map((x) => x.event_id),
-    tasks: tasks.map((x) => x.task_id),
+    tasks: tasks.filter((x) => x.status === "approved").map((x) => x.task_id),   // approved = points
+    taskSubmissions: tasks.map((x) => ({ id: x.task_id, status: x.status, reviewNote: x.review_note || "", proofUrl: x.proof_url || "", note: x.proof_note || "", at: x.updated_at })),
     tickets: await Promise.all(tickets.map((t) => TK.publicTicket(t, { withResolution: true }))),
     points
   });
@@ -218,18 +219,44 @@ r.post("/events/:id/rsvp", requireMember, async (req, res) => {
   res.json({ going: !had });
 });
 
-r.post("/tasks/:id/toggle", requireMember, async (req, res) => {
+// volunteer task: the member sends proof (link and/or screenshot) → "pending" until an admin approves
+const proofLimit = U.rateLimit("proof", 20, 10 * 60e3);
+r.post("/tasks/:id/submit", requireMember, proofLimit, async (req, res) => {
   const id = U.oneOf(req.params.id, Object.keys(U.TASK_POINTS), "task");
-  const had = await one("SELECT 1 AS x FROM ysr_nri_wing_task_done WHERE member_id = ? AND task_id = ?", req.memberId, id);
-  if (had) await run("DELETE FROM ysr_nri_wing_task_done WHERE member_id = ? AND task_id = ?", req.memberId, id);
-  else await run("INSERT INTO ysr_nri_wing_task_done (member_id, task_id) VALUES (?, ?) ON CONFLICT DO NOTHING", req.memberId, id);
-  res.json({ done: !had, points: await pointsOf(req.memberId) });
+  const b = req.body || {};
+  const url = U.text(b.url, "Link", { max: 500, required: false }) || null;
+  if (url && !/^https?:\/\/\S+$/i.test(url)) throw new U.BadRequest("Please paste the full link, starting with https://");
+  const image = b.image ? String(b.image) : null;
+  if (image && (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image) || image.length > 280000)) throw new U.BadRequest("Please choose a JPG or PNG screenshot.");
+  if (!url && !image) throw new U.BadRequest("Please add the link to your post or a screenshot as proof.");
+  const note = U.text(b.note, "Note", { max: 500, required: false }) || null;
+  const had = await one("SELECT status FROM ysr_nri_wing_task_done WHERE member_id = ? AND task_id = ?", req.memberId, id);
+  if (had && had.status === "approved") return res.status(409).json({ error: "This task is already approved." });
+  await run(`INSERT INTO ysr_nri_wing_task_done (member_id, task_id, status, proof_url, proof_image, proof_note, created_at, updated_at)
+             VALUES (?, ?, 'pending', ?, ?, ?, now(), now())
+             ON CONFLICT (member_id, task_id) DO UPDATE SET status = 'pending', proof_url = EXCLUDED.proof_url, proof_image = EXCLUDED.proof_image,
+               proof_note = EXCLUDED.proof_note, review_note = NULL, reviewed_by = NULL, reviewed_at = NULL, updated_at = now()`,
+    req.memberId, id, url, image, note);
+  res.json({ ok: true, status: "pending" });
+});
+// withdraw a submission that is still waiting
+r.delete("/tasks/:id", requireMember, async (req, res) => {
+  const id = U.oneOf(req.params.id, Object.keys(U.TASK_POINTS), "task");
+  await run("DELETE FROM ysr_nri_wing_task_done WHERE member_id = ? AND task_id = ? AND status <> 'approved'", req.memberId, id);
+  res.json({ ok: true });
+});
+// links admins set for tasks (e.g. this week's official post)
+r.get("/task-links", async (_req, res) => {
+  const row = await one("SELECT value FROM ysr_nri_wing_app_state WHERE key = 'task_links'");
+  let links = {};
+  try { links = row ? JSON.parse(row.value) : {}; } catch {}
+  res.json({ links });
 });
 
 r.get("/leaderboard", async (_req, res) => {
   const cases = Object.entries(U.TASK_POINTS).map(([k, v]) => `WHEN '${k}' THEN ${v}`).join(" ");
   const rows = await all(`SELECT m.name, m.city, ${U.REGISTER_POINTS} + COALESCE(SUM(CASE t.task_id ${cases} ELSE 0 END), 0) AS pts
-                          FROM ysr_nri_wing_members m LEFT JOIN ysr_nri_wing_task_done t ON t.member_id = m.id
+                          FROM ysr_nri_wing_members m LEFT JOIN ysr_nri_wing_task_done t ON t.member_id = m.id AND t.status = 'approved'
                           GROUP BY m.id ORDER BY pts DESC, m.id ASC LIMIT 10`);
   // show first name + initial only
   res.json({ leaders: rows.map((x) => { const p = x.name.split(/\s+/); return { name: p[0] + (p[1] ? " " + p[1][0] + "." : ""), city: x.city, pts: x.pts }; }) });
@@ -247,6 +274,10 @@ r.post("/questions", postLimit, optionalMember, async (req, res) => {
     if (m) by = `${m.name.split(/\s+/)[0]}, ${m.city}`;
   }
   await run("INSERT INTO ysr_nri_wing_questions (member_id, name, text) VALUES (?, ?, ?)", req.memberId, by, q);
+  // the "Submit a question" task proves itself – approved automatically for logged-in members
+  if (req.memberId) await run(`INSERT INTO ysr_nri_wing_task_done (member_id, task_id, status, proof_note, reviewed_by, reviewed_at)
+                               VALUES (?, 't5', 'approved', 'Question submitted on the website', 'website', now())
+                               ON CONFLICT (member_id, task_id) DO UPDATE SET status = 'approved', reviewed_by = 'website', reviewed_at = now()`, req.memberId);
   res.status(201).json({ ok: true, by });
 });
 

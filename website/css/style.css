@@ -1368,3 +1368,14 @@ body:not([data-page="home"]) main > section:first-of-type:not([hidden]) { paddin
 .cm-foot { text-align: center; margin: 26px 0 0; color: #b7c6e6; font-size: .9rem; }
 .cm-foot a { color: #5cf5a3; font-weight: 600; }
 @media (max-width: 560px) { .cm-grid { grid-template-columns: 1fr 1fr; justify-content: stretch; } .cm-sm { padding: 16px 10px; } }
+
+/* volunteer task proofs */
+.task.pending { background: linear-gradient(160deg, #fff8e6, #fff); border-color: #f5d27a; }
+.task.rejected { border-color: #f3b4b4; }
+.task .task-state.ok { font-weight: 700; color: var(--green); font-size: .9rem; }
+.task .task-note { font-size: .8rem; margin: 6px 0 10px; color: #b42318; }
+.task .task-note.wait { color: #8a5a00; }
+.task-link { display: inline-block; margin: 2px 0 10px; font-size: .85rem; font-weight: 600; color: var(--blue); }
+.proof-shot { display: flex; align-items: center; gap: 14px; }
+.proof-pick { border-radius: 14px; width: 84px; height: 84px; }
+.modal .task-note { color: #b42318; font-size: .88rem; }

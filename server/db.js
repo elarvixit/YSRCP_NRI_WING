@@ -135,6 +135,16 @@ CREATE TABLE IF NOT EXISTS ysr_nri_wing_task_done (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (member_id, task_id)
 );
+-- volunteer task proof: the member sends a link / screenshot, an admin approves → only then points count
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS status      TEXT NOT NULL DEFAULT 'approved';
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS proof_url   TEXT;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS proof_image TEXT;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS proof_note  TEXT;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS review_note TEXT;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS reviewed_by TEXT;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+ALTER TABLE ysr_nri_wing_task_done ADD COLUMN IF NOT EXISTS updated_at  TIMESTAMPTZ NOT NULL DEFAULT now();
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_task_done_status ON ysr_nri_wing_task_done (status);
 
 CREATE TABLE IF NOT EXISTS ysr_nri_wing_questions (
   id          SERIAL PRIMARY KEY,

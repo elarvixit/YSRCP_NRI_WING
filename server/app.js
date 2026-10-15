@@ -18,7 +18,7 @@ app.use("/api", (_req, res, next) => { res.setHeader("Cache-Control", "no-store"
 
 // photos (member card, committee) may be bigger than other forms
 const smallJson = express.json({ limit: "20kb" }), photoJson = express.json({ limit: "300kb" });
-app.use((req, res, next) => (req.path === "/api/me/photo" || req.path.startsWith("/api/admin/country-teams") ? photoJson : smallJson)(req, res, next));
+app.use((req, res, next) => (req.path === "/api/me/photo" || req.path.startsWith("/api/admin/country-teams") || /^\/api\/tasks\/[\w-]+\/submit$/.test(req.path) ? photoJson : smallJson)(req, res, next));
 
 // daily gallery check – called by Vercel Cron (vercel.json), which sends "Authorization: Bearer <CRON_SECRET>"
 app.get("/api/cron/gallery", async (req, res) => {

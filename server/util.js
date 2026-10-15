@@ -3,6 +3,10 @@ const crypto = require("crypto");
 
 // Keep in sync with TASKS and EVENTS in website/js/data.js
 const TASK_POINTS = { t1: 10, t2: 40, t3: 30, t4: 25, t5: 20, t6: 35 };
+const TASK_TITLES = {
+  t1: "Share this week's official post", t2: "Call five people in your home constituency", t3: "Attend a city meet",
+  t4: "Bring a new member", t5: "Submit a question for Live with Leaders", t6: "Update your village project"
+};
 const EVENT_IDS = ["ev1", "ev2", "ev3", "ev4", "ev5", "ev6", "ev7", "ev8"];
 const REGISTER_POINTS = 10;
 
@@ -67,4 +71,4 @@ function rateLimit(key, max, windowMs) {
 }
 setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (!v.some((t) => now - t < 3600e3)) hits.delete(k); }, 600e3).unref();
 
-module.exports = { COMMITTEE_ROLES, TASK_POINTS, EVENT_IDS, REGISTER_POINTS, TICKET_CATEGORIES, MEET_TYPES, MEET_PLACES, BadRequest, text, email, phone, oneOf, id, mustConsent, memberNo, ticketNo, meetRef, rateLimit };
+module.exports = { COMMITTEE_ROLES, TASK_POINTS, TASK_TITLES, EVENT_IDS, REGISTER_POINTS, TICKET_CATEGORIES, MEET_TYPES, MEET_PLACES, BadRequest, text, email, phone, oneOf, id, mustConsent, memberNo, ticketNo, meetRef, rateLimit };

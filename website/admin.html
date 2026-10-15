@@ -61,6 +61,13 @@
   .tl li { margin: 4px 0; }
   .vol-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; background: #fff; padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 14px; }
   .vol-form label { display: grid; gap: 4px; font-size: .8rem; font-weight: 600; }
+  .proof-img { width: 96px; height: 72px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); cursor: zoom-in; }
+  .pill.amber { background: #fff4d6; color: #8a5a00; }
+  .links-form { display: grid; gap: 8px; background: #fff; padding: 14px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 18px; }
+  .links-form label { display: grid; grid-template-columns: 260px 1fr; gap: 10px; align-items: center; font-size: .85rem; }
+  @media (max-width: 700px) { .links-form label { grid-template-columns: 1fr; } }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .filter-chips button.on { background: var(--blue); color: #fff; }
 </style>
 </head>
 <body>
@@ -82,6 +89,7 @@
     <button data-tab="overview" class="on">Overview</button>
     <button data-tab="tickets" data-admin>Help Desk<span class="badge hidden" id="bTickets"></span></button>
     <button data-tab="meet" data-admin>Meet Jagan Sir<span class="badge hidden" id="bMeet"></span></button>
+    <button data-tab="proofs" data-admin>Task proofs<span class="badge hidden" id="bProofs"></span></button>
     <button data-tab="volunteers" data-admin>Volunteers</button>
     <button data-tab="teams" data-admin>Country committees</button>
     <button data-tab="members">Members</button>
@@ -154,11 +162,12 @@
     try {
       const s = await api("GET", "/summary");
       const set = (id, n) => { const el = $(id); el.textContent = n; el.classList.toggle("hidden", !n); };
-      set("#bTickets", s.ticketsOpen); set("#bMeet", s.meetNew); set("#bWa", s.whatsappNew);
+      set("#bTickets", s.ticketsOpen); set("#bMeet", s.meetNew); set("#bWa", s.whatsappNew); set("#bProofs", s.tasksPending || 0);
     } catch {}
   }
 
   const AP_DISTRICTS = ["Alluri Sitharama Raju","Anakapalli","Anantapur","Annamayya","Bapatla","Chittoor","Dr. B.R. Ambedkar Konaseema","East Godavari","Eluru","Guntur","Kakinada","Krishna","Kurnool","Nandyal","NTR","Palnadu","Parvathipuram Manyam","Prakasam","Sri Potti Sriramulu Nellore","Sri Sathya Sai","Srikakulam","Tirupati","Visakhapatnam","Vizianagaram","West Godavari","YSR Kadapa"];
+  let proofFilter = "pending";
   const VIEWS = {
     async overview() {
       const s = await api("GET", "/summary");
@@ -168,7 +177,8 @@
           <div class="card alert"><span>Urgent tickets open</span><b>${s.ticketsUrgent}</b></div>
           <div class="card"><span>Waiting for a volunteer</span><b>${s.ticketsUnassigned}</b></div>
           <div class="card alert"><span>Past target date</span><b>${s.ticketsOverdue}</b></div>
-          <div class="card"><span>New meeting requests</span><b>${s.meetNew}</b></div>` : ""}
+          <div class="card"><span>New meeting requests</span><b>${s.meetNew}</b></div>
+          <div class="card"><span>Task proofs to review</span><b>${s.tasksPending}</b></div>` : ""}
           <div class="card"><span>New WhatsApp requests</span><b>${s.whatsappNew}</b></div>
         </div>
         ${s.byCountry.length ? `<div class="bar"><h2>Members by country</h2></div>` + table(["Country", "Members"], s.byCountry.map((c) => `<tr><td>${esc(c.country)}</td><td><b>${c.n}</b></td></tr>`)) : ""}`;
@@ -213,6 +223,28 @@
         leaders.map((l) => `<tr><td>${l.photo ? `<img src="${l.photo}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : `<span class="muted">–</span>`}</td>
           <td><b>${esc(l.country)}</b></td><td>${esc(l.role)}</td><td>${esc(l.name)}</td><td>${esc(l.city || "")}</td>
           <td><button class="btn ghost sm" data-del-leader="${l.id}" data-name="${esc(l.name)}">Remove</button></td></tr>`));
+    },
+    async proofs(filter = proofFilter) {
+      proofFilter = filter;
+      const [{ titles, points, proofs }, { links }] = await Promise.all([
+        api("GET", "/task-proofs" + (filter ? "?status=" + filter : "")), api("GET", "/task-links")]);
+      const pill = (st) => st === "approved" ? '<span class="pill">Approved</span>' : st === "rejected" ? '<span class="pill red">Rejected</span>' : '<span class="pill amber">Waiting</span>';
+      return `<div class="bar"><h2>Volunteer task proofs</h2>
+          <div class="filter-chips">${[["pending", "Waiting"], ["approved", "Approved"], ["rejected", "Rejected"], ["", "All"]].map(([v, l]) => `<button class="btn ghost sm ${filter === v ? "on" : ""}" data-proof-filter="${v}">${l}</button>`).join("")}</div></div>
+        <p class="muted" style="margin-top:-6px">Members send a link and/or screenshot. Points and the leaderboard count only <b>approved</b> tasks. “Submit a question” is approved automatically.</p>
+        <form class="links-form" id="taskLinksForm"><b>Links shown on the Volunteer page</b>
+          ${Object.entries(titles).filter(([id]) => id !== "t5").map(([id, t]) => `<label>${esc(t)}<input name="${id}" type="url" placeholder="https://… (e.g. this week's official post)" value="${esc(links[id] || "")}"></label>`).join("")}
+          <div><button class="btn sm">Save links</button></div></form>` + table(
+        ["Member", "Task", "Proof", "Sent", "Status", ""],
+        proofs.map((p) => `<tr>
+          <td><b>${esc(p.name)}</b><br><span class="muted">${esc(p.member_no)} · ${esc(p.city)}, ${esc(p.country)}</span></td>
+          <td>${esc(titles[p.task_id] || p.task_id)}<br><span class="muted">+${points[p.task_id] || 0} pts</span></td>
+          <td class="desc">${p.proof_url ? `<a href="${esc(p.proof_url)}" target="_blank" rel="noopener noreferrer">${esc(p.proof_url.length > 48 ? p.proof_url.slice(0, 46) + "…" : p.proof_url)}</a><br>` : ""}
+            ${p.proof_image ? `<img class="proof-img" src="${p.proof_image}" alt="Screenshot" data-zoom>` : ""}
+            ${p.proof_note ? `<div>${esc(p.proof_note)}</div>` : ""}</td>
+          <td class="muted">${date(p.updated_at)}</td>
+          <td>${pill(p.status)}${p.review_note ? `<br><span class="muted">${esc(p.review_note)}</span>` : ""}${p.reviewed_by ? `<br><span class="muted">${esc(p.reviewed_by)}</span>` : ""}</td>
+          <td style="white-space:nowrap">${p.status !== "approved" ? `<button class="btn sm" data-review="approved" data-m="${p.member_id}" data-t="${esc(p.task_id)}">✓ Approve</button> ` : ""}${p.status !== "rejected" ? `<button class="btn ghost sm" data-review="rejected" data-m="${p.member_id}" data-t="${esc(p.task_id)}">✕ Reject</button>` : ""}</td></tr>`));
     },
     async volunteers() {
       const { volunteers } = await api("GET", "/volunteers");
@@ -328,6 +360,29 @@
     const d = e.target.closest("[data-del-leader]"); if (!d) return;
     if (!confirm(`Remove ${d.dataset.name} from the committee?`)) return;
     try { await api("DELETE", "/country-teams/" + d.dataset.delLeader); toast("Removed"); show("teams"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("submit", async (e) => {
+    if (e.target.id !== "taskLinksForm") return;
+    e.preventDefault();
+    try { await api("PUT", "/task-links", Object.fromEntries(new FormData(e.target))); toast("Links saved – they show on the Volunteer page"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("click", async (e) => {
+    const f = e.target.closest("[data-proof-filter]");
+    if (f) { $("#view").innerHTML = await VIEWS.proofs(f.dataset.proofFilter); return; }
+    const z = e.target.closest("[data-zoom]");
+    if (z) { const w = window.open(); if (w) { w.document.title = "Screenshot"; w.document.body.style.margin = "0"; const im = w.document.createElement("img"); im.src = z.src; im.style.maxWidth = "100%"; w.document.body.appendChild(im); } return; }
+    const rv = e.target.closest("[data-review]");
+    if (!rv) return;
+    let note = null;
+    if (rv.dataset.review === "rejected") {
+      note = prompt("Why is this not approved? (the member will see this)", "Link does not open / proof not clear");
+      if (note === null) return;
+    }
+    try {
+      await api("PATCH", `/task-proofs/${rv.dataset.m}/${rv.dataset.t}`, { status: rv.dataset.review, note });
+      toast(rv.dataset.review === "approved" ? "Approved – points added" : "Marked as not approved");
+      show("proofs");
+    } catch (err) { toast(err.message); }
   });
   document.addEventListener("submit", async (e) => {
     if (e.target.id !== "volForm") return;

@@ -22,7 +22,9 @@
   const state = {
     user: store.get("user", null),
     rsvps: store.get("rsvps", []),
-    tasks: store.get("tasks", []),
+    tasks: store.get("tasks", []),          // approved tasks (count for points)
+    taskSubs: {},                            // online: { t1: { status: pending|approved|rejected, reviewNote, proofUrl, note } }
+    taskLinks: {},                           // links admins set, e.g. this week's official post
     tickets: store.get("tickets", []),
     questions: store.get("questions", [])
   };
@@ -759,7 +761,7 @@
       save("questions"); renderQuestions();
     }
     ta.value = "";
-    completeTask("t5", true);
+    if (API.online) { if (state.user) syncMe().then(loadLeaderboard); } else completeTask("t5", true);
     toast("✅ Question submitted for the next town hall");
   });
 
@@ -945,15 +947,97 @@
 
   /* ---------- volunteer ---------- */
   const points = () => state.tasks.reduce((s, id) => s + (TASKS.find((x) => x.id === id)?.pts || 0), 0) + (state.user ? 10 : 0);
+  // online: done = approved by an admin after the member sends proof; offline: self-marked
+  const taskState = (id) => (state.tasks.includes(id) ? "approved" : (state.taskSubs[id] && state.taskSubs[id].status) || "none");
   function renderTasks() {
     const el = $("#taskGrid");
     el.innerHTML = TASKS.map((tk) => {
-      const done = state.tasks.includes(tk.id);
-      return `<article class="task ${done ? "done" : ""}"><span class="ic">${tk.icon}</span><h4>${esc(tk.title)}</h4><p>${esc(tk.desc)}</p>
-        <div class="foot"><span class="pts">+${tk.pts} pts</span><button class="btn btn-ghost btn-sm" data-task="${tk.id}">${done ? esc(t("done", "✓ Done")) : esc(t("markDone", "Mark done"))}</button></div></article>`;
+      const st = taskState(tk.id), sub = state.taskSubs[tk.id] || {}, link = state.taskLinks[tk.id];
+      const btn = !API.online
+        ? `<button class="btn btn-ghost btn-sm" data-task="${tk.id}">${st === "approved" ? esc(t("done", "✓ Done")) : esc(t("markDone", "Mark done"))}</button>`
+        : st === "approved" ? `<span class="task-state ok">✓ Approved</span>`
+        : st === "pending" ? `<button class="btn btn-ghost btn-sm" data-task="${tk.id}">⏳ Pending review</button>`
+        : st === "rejected" ? `<button class="btn btn-ghost btn-sm" data-task="${tk.id}">↻ Send again</button>`
+        : `<button class="btn btn-ghost btn-sm" data-task="${tk.id}">📎 Submit proof</button>`;
+      return `<article class="task ${st === "approved" ? "done" : ""} ${st === "pending" ? "pending" : ""} ${st === "rejected" ? "rejected" : ""}"><span class="ic">${tk.icon}</span><h4>${esc(tk.title)}</h4><p>${esc(tk.desc)}</p>
+        ${link ? `<a class="task-link" href="${esc(link)}" target="_blank" rel="noopener">🔗 Open ${tk.id === "t1" ? "this week's post" : "link"} ↗</a>` : ""}
+        ${st === "rejected" && sub.reviewNote ? `<p class="task-note">❌ Not approved: ${esc(sub.reviewNote)}</p>` : ""}
+        ${st === "pending" ? `<p class="task-note wait">Our team will check your proof soon. Points are added after approval.</p>` : ""}
+        <div class="foot"><span class="pts">+${tk.pts} pts</span>${btn}</div></article>`;
     }).join("");
     stagger(el);
     renderPoints();
+  }
+  // proof form: link to the shared post and/or a screenshot
+  function openProofForm(id) {
+    const tk = TASKS.find((x) => x.id === id), sub = state.taskSubs[id] || {}, link = state.taskLinks[id];
+    const hint = {
+      t1: "Paste the link to YOUR shared post (Facebook / Instagram / X / WhatsApp status screenshot).",
+      t2: "Write whom you called (village / constituency) and add a screenshot of your call list if you like.",
+      t3: "Add a photo or screenshot from the meet you attended.",
+      t4: "Write the name / member number of the person who registered.",
+      t6: "Add a photo of your village project update."
+    }[id] || "Add a link or screenshot as proof.";
+    openModal(`<h3 id="modalTitle">${tk.icon} ${esc(tk.title)}</h3>
+      <p>${esc(hint)} Our team checks every proof – <b>+${tk.pts} points</b> are added after approval.</p>
+      ${link ? `<p><a class="task-link" href="${esc(link)}" target="_blank" rel="noopener">🔗 Open this week's official post ↗</a></p>` : ""}
+      ${sub.status === "rejected" && sub.reviewNote ? `<p class="task-note">❌ Last time: ${esc(sub.reviewNote)}</p>` : ""}
+      <form id="proofForm" class="stack">
+        <label>Link to your post <small class="muted">(https://…)</small><input name="url" type="url" maxlength="500" placeholder="https://www.facebook.com/…" value="${esc(sub.proofUrl || "")}"></label>
+        <div class="proof-shot"><button type="button" class="photo-pick proof-pick" data-proof-shot aria-label="Add screenshot"><span>🖼️</span></button>
+          <div><b>Screenshot</b> <small class="muted">(optional if you added a link)</small><br><small class="muted">A photo or screen capture of your post / activity.</small></div></div>
+        <label>Note <small class="muted">(optional)</small><textarea name="note" rows="2" maxlength="500" placeholder="e.g. Shared in 3 WhatsApp groups and on Facebook">${esc(sub.note || "")}</textarea></label>
+        <div class="row2">${sub.status === "pending" ? `<button type="button" class="btn btn-ghost" data-withdraw="${id}">Withdraw</button>` : `<span></span>`}<button class="btn btn-primary">Send for review</button></div>
+      </form>`);
+    const form = $("#proofForm");
+    let shot = null;
+    form.addEventListener("click", async (e) => {
+      if (e.target.closest("[data-proof-shot]")) {
+        const img = await pickScreenshot(); if (!img) return;
+        shot = img; $("[data-proof-shot]", form).innerHTML = `<img src="${img}" alt="Screenshot">`;
+      }
+      const w = e.target.closest("[data-withdraw]");
+      if (w) {
+        try { await API.del("/tasks/" + w.dataset.withdraw); } catch (err) { toast(err.message); return; }
+        delete state.taskSubs[id]; renderTasks(); closeModal(); toast("Submission withdrawn");
+      }
+    });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(form));
+      if (!f.url.trim() && !shot) { toast("Please add the link to your post or a screenshot"); return; }
+      const btn = $("button:not([type])", form); btn.disabled = true;
+      try { await API.post(`/tasks/${id}/submit`, { url: f.url.trim(), note: f.note, image: shot }); }
+      catch (err) { toast(err.message); btn.disabled = false; return; }
+      state.taskSubs[id] = { status: "pending", proofUrl: f.url.trim(), note: f.note, reviewNote: "" };
+      renderTasks(); closeModal(); toast("📨 Sent for review – points are added after approval");
+    });
+  }
+  // screenshot → max 1080px wide JPEG (about 100–200 KB)
+  function pickScreenshot() {
+    return new Promise((resolve) => {
+      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+      inp.onchange = () => {
+        const file = inp.files && inp.files[0]; if (!file || !file.type.startsWith("image/")) return resolve(null);
+        const url = URL.createObjectURL(file), img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height, q = 0.72;
+          const max = 1080; if (w > max) { h = Math.round(h * max / w); w = max; }
+          const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h);
+          let data = c.toDataURL("image/jpeg", q);
+          while (data.length > 270000 && q > 0.35) { q -= 0.12; data = c.toDataURL("image/jpeg", q); }
+          URL.revokeObjectURL(url);
+          if (data.length > 270000) { toast("That screenshot is too large – please crop it"); return resolve(null); }
+          resolve(data);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); toast("Sorry, that image could not be opened"); resolve(null); };
+        img.src = url;
+      };
+      inp.click();
+    });
+  }
+  async function loadTaskLinks() {
+    try { state.taskLinks = (await API.get("/task-links")).links || {}; renderTasks(); } catch {}
   }
   function renderPoints(bump) {
     const p = points();
@@ -977,10 +1061,7 @@
   }
   async function completeTask(id, silent) {
     if (state.tasks.includes(id)) return;
-    if (API.online) {
-      if (!state.user) { if (!silent) { toast("Please register or log in to earn points"); openRegister(); } return; }
-      try { await API.post(`/tasks/${id}/toggle`); } catch (err) { toast(err.message); return; }
-    }
+    if (API.online) return; // online, points come from approved proof (see openProofForm)
     const before = BADGES.filter((b) => b.need <= points()).length;
     state.tasks.push(id); save("tasks");
     if (API.online) loadLeaderboard();
@@ -992,10 +1073,11 @@
   $("#taskGrid").addEventListener("click", async (e) => {
     const b = e.target.closest("[data-task]"); if (!b) return;
     const id = b.dataset.task;
-    if (state.tasks.includes(id)) {
-      if (API.online && state.user) { try { await API.post(`/tasks/${id}/toggle`); } catch (err) { toast(err.message); return; } loadLeaderboard(); }
-      state.tasks = state.tasks.filter((x) => x !== id); save("tasks"); renderTasks(); return;
+    if (API.online) {
+      if (!state.user) { toast("Please register or log in to do volunteer tasks"); openRegister(); return; }
+      openProofForm(id); return;
     }
+    if (state.tasks.includes(id)) { state.tasks = state.tasks.filter((x) => x !== id); save("tasks"); renderTasks(); return; }
     completeTask(id);
   });
 
@@ -1375,7 +1457,7 @@
         <div class="dash-tile"><h5>📍 My city</h5>${u.chapter ? `<b>${esc(u.chapter)}</b>` : `<a href="#chapters" data-close style="color:var(--blue)">Choose a city →</a>`}</div>
         <div class="dash-tile"><h5>⭐ My points</h5><span class="big">${points()}</span></div>
         <div class="dash-tile"><h5>📅 My events</h5>${evs.length ? `<ul>${evs.map((e) => `<li>${esc(e.title)}</li>`).join("")}</ul>` : `<a href="#events" data-close style="color:var(--blue)">RSVP to an event →</a>`}</div>
-        <div class="dash-tile"><h5>✅ My tasks</h5>${done.length ? `<ul>${done.map((d) => `<li>${esc(d.title)}</li>`).join("")}</ul>` : `<a href="#volunteer" data-close style="color:var(--blue)">Start a task →</a>`}</div>
+        <div class="dash-tile"><h5>✅ My tasks</h5>${done.length ? `<ul>${done.map((d) => `<li>${esc(d.title)}</li>`).join("")}</ul>` : `<a href="#volunteer" data-close style="color:var(--blue)">Start a task →</a>`}${Object.values(state.taskSubs).filter((s) => s.status === "pending").length ? `<small class="muted">⏳ ${Object.values(state.taskSubs).filter((s) => s.status === "pending").length} waiting for review</small>` : ""}</div>
         <div class="dash-tile" style="grid-column:1/-1"><h5>🛟 My help requests</h5>${state.tickets.length ? state.tickets.map((tk) => `<span class="pill" style="margin-right:6px">#${esc(tk.id)} · ${STATUSES[ticketStage(tk)]}</span>`).join("") : `<a href="#helpdesk" data-close style="color:var(--blue)">Raise a request →</a>`}</div>
       </div>
       <div class="dash-actions"><button class="btn btn-primary" data-card>🪪 ${esc(t("myCard", "My member card"))}</button><button class="btn btn-ghost" data-logout>${esc(t("logout", "Logout"))}</button>${API.online ? `<button class="btn btn-ghost btn-danger" data-delete-me>Delete my data</button>` : ""}</div>`, true);
@@ -1389,6 +1471,7 @@
       const r = await API.get("/me");
       state.user = memberFromApi(r.member);
       state.rsvps = r.rsvps; state.tasks = r.tasks;
+      state.taskSubs = Object.fromEntries((r.taskSubmissions || []).map((x) => [x.id, x]));
       state.tickets = r.tickets.map((x) => ({ ...x, urgent: !!x.urgent }));
       store.set("user", state.user); save("rsvps"); save("tasks"); save("tickets");
       renderAuth(); renderEvents(); renderTasks(); renderMyTickets();
@@ -1397,7 +1480,7 @@
   function logout(message) {
     API.setToken(null);
     state.user = null; store.set("user", null);
-    if (API.online) { state.rsvps = []; state.tasks = []; state.tickets = []; save("rsvps"); save("tasks"); save("tickets"); renderEvents(); renderTasks(); renderMyTickets(); }
+    if (API.online) { state.rsvps = []; state.tasks = []; state.taskSubs = {}; state.tickets = []; save("rsvps"); save("tasks"); save("tickets"); renderEvents(); renderTasks(); renderMyTickets(); }
     closeModal(); renderAuth(); renderPoints();
     if (message) toast(message);
   }
@@ -1422,7 +1505,7 @@
     document.body.dataset.backend = online ? "online" : "offline";
     if (!online) return;
     if (state.user && !API.getToken()) logout(); // old browser-only login → please log in again
-    syncMe().then(() => { if (!API.getToken()) refreshTickets(); }); loadQuestions(); loadLeaderboard(); loadSocialGallery(); loadCommittees();
+    syncMe().then(() => { if (!API.getToken()) refreshTickets(); }); loadQuestions(); loadLeaderboard(); loadSocialGallery(); loadCommittees(); loadTaskLinks();
   });
 
   /* ---------- pages (instead of one long page) ---------- */
