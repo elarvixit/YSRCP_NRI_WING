@@ -1332,11 +1332,10 @@
     x.font = "400 28px Outfit, sans-serif"; x.fillStyle = "rgba(255,255,255,.85)"; x.fillText(`${u.city}, ${u.country} · ${u.district}`, 60, 466);
     x.font = "600 32px monospace"; x.fillStyle = "#fff"; x.fillText(u.no, 60, 540);
     const load = (src, cors) => new Promise((r) => { const i = new Image(); if (cors) i.crossOrigin = "anonymous"; i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
-    const ring = (cx, cy, rad, w) => { x.strokeStyle = "rgba(255,255,255,.9)"; x.lineWidth = w; x.beginPath(); x.arc(cx, cy, rad, 0, Math.PI * 2); x.stroke(); };
     Promise.all([u.photo ? load(u.photo) : null, load(qrDataURL(cardPayload(u))), ...CARD_LEADERS.map((l) => load(l.src, true))]).then(([ph, qr, ...leaders]) => {
       if (ph) {
-        x.save(); x.beginPath(); x.arc(135, 265, 75, 0, Math.PI * 2); x.clip(); x.drawImage(ph, 60, 190, 150, 150); x.restore();
-        ring(135, 265, 75, 6);
+        x.save(); rr(60, 190, 150, 150, 22); x.clip(); x.drawImage(ph, 60, 190, 150, 150); x.restore();
+        rr(60, 190, 150, 150, 22); x.strokeStyle = "rgba(255,255,255,.9)"; x.lineWidth = 6; x.stroke();
       }
       // leaders: same crop as the card's CSS background (size % of the circle, position %)
       leaders.forEach((im, k) => {
