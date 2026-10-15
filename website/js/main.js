@@ -914,12 +914,15 @@
     io2.observe(wallEl);
   })();
   const meetForm = $("#meetForm");
-  if (state.user) {
-    meetForm.elements.name.value = state.user.name || "";
-    meetForm.elements.email.value = state.user.email || "";
-    meetForm.elements.phone.value = state.user.phone || "";
-    meetForm.elements.place.value = [state.user.city, state.user.country].filter(Boolean).join(", ");
+  // fill in the logged-in member's details (also after logging in later – called when the page opens)
+  function prefillMeet() {
+    const u = state.user, el = meetForm.elements; if (!u) return;
+    if (!el.name.value) el.name.value = u.name || "";
+    if (!el.email.value) el.email.value = u.email || "";
+    if (!el.phone.value) el.phone.value = u.phone || "";
+    if (!el.place.value) el.place.value = [u.city, u.country].filter(Boolean).join(", ");
   }
+  prefillMeet();
   meetForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(meetForm));
@@ -1538,6 +1541,7 @@
       currentPage = page;
       document.body.dataset.page = page;
       if (page === "chapters") setTimeout(initWorldMap, 0);
+      if (page === "meet") prefillMeet();
       if (page === "helpdesk") {
         refreshTickets();
         const hf = $("#helpForm").elements, u = state.user;

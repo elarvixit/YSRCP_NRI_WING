@@ -1379,3 +1379,9 @@ body:not([data-page="home"]) main > section:first-of-type:not([hidden]) { paddin
 .proof-shot { display: flex; align-items: center; gap: 14px; }
 .proof-pick { border-radius: 14px; width: 84px; height: 84px; }
 .modal .task-note { color: #b42318; font-size: .88rem; }
+
+/* phones: centred tab bars wrap instead of hiding a tab off-screen */
+@media (max-width: 560px) {
+  .tabs.center { width: auto; flex-wrap: wrap; justify-content: center; overflow: visible; }
+  .tabs.center .tab { flex: 1 1 auto; padding: 9px 12px; }
+}
