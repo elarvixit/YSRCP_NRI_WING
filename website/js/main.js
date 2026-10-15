@@ -1341,7 +1341,7 @@
       // leaders: same crop as the card's CSS background (size % of the circle, position %)
       leaders.forEach((im, k) => {
         if (!im) return;
-        const l = CARD_LEADERS[k], R = 62, cx = W - 250 + k * 145, cy = 190;
+        const l = CARD_LEADERS[k], R = 62, cx = W - 170 - (CARD_LEADERS.length - 1 - k) * 145, cy = 190;
         const bw = l.size / 100, bh = bw * im.naturalHeight / im.naturalWidth;
         const sx = (l.x / 100) * (bw - 1) / bw * im.naturalWidth, sy = (l.y / 100) * (bh - 1) / bh * im.naturalHeight;
         x.save(); x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip();

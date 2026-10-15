@@ -510,6 +510,5 @@ const AP_CONSTITUENCIES = {
 
 /* leaders on the digital member card – round crops (size / position as CSS background values) */
 const CARD_LEADERS = [
-  { name: "Dr. YSR", src: SITE + "/Slider/msimg1.jpeg", size: 1000, x: 22.2, y: 2.8 },
   { name: "YS Jagan", src: "images/jagan-cm-office.webp", size: 300, x: 52.5, y: 38 }
 ];
