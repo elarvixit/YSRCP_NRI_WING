@@ -31,13 +31,13 @@ let running = false;
 
 // the last check is kept in the database (serverless functions don't keep memory between runs)
 async function getStatus() {
-  const row = await one("SELECT value FROM app_state WHERE key = 'gallery_sync'");
+  const row = await one("SELECT value FROM ysr_nri_wing_app_state WHERE key = 'gallery_sync'");
   let saved = {};
   try { saved = row ? JSON.parse(row.value) : {}; } catch {}
   return { configured: isConfigured(cfg()), running, lastRun: saved.lastRun || null, lastError: saved.lastError || null, added: saved.added || 0 };
 }
 async function saveStatus(st) {
-  await run(`INSERT INTO app_state (key, value, updated_at) VALUES ('gallery_sync', ?, now())
+  await run(`INSERT INTO ysr_nri_wing_app_state (key, value, updated_at) VALUES ('gallery_sync', ?, now())
              ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`, JSON.stringify(st));
 }
 
@@ -131,12 +131,12 @@ async function syncSocial() {
     if (c.pageId) await facebookItems(c).then((x) => items.push(...x)).catch((e) => errors.push("Facebook: " + e.message));
     if (c.igId) await instagramItems(c).then((x) => items.push(...x)).catch((e) => errors.push("Instagram: " + e.message));
     for (const it of items) {
-      if (await one("SELECT 1 AS x FROM social_photos WHERE source = ? AND ext_id = ?", it.source, it.extId)) continue;
+      if (await one("SELECT 1 AS x FROM ysr_nri_wing_social_photos WHERE source = ? AND ext_id = ?", it.source, it.extId)) continue;
       const text = it.caption.toLowerCase();
       if (c.keywords.length && !c.keywords.some((k) => text.includes(k))) continue;
       try {
         const file = await saveImage(it);
-        await run(`INSERT INTO social_photos (source, ext_id, file, caption, permalink, posted_at) VALUES (?, ?, ?, ?, ?, ?)
+        await run(`INSERT INTO ysr_nri_wing_social_photos (source, ext_id, file, caption, permalink, posted_at) VALUES (?, ?, ?, ?, ?, ?)
                    ON CONFLICT (source, ext_id) DO NOTHING`,
           it.source, it.extId, file, it.caption.slice(0, 1000), it.permalink, isoDate(it.postedAt));
         added++;

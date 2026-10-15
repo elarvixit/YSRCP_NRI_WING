@@ -6,7 +6,7 @@ const path = require("path");
 try { process.loadEnvFile(path.join(__dirname, "..", ".env")); } catch {}
 const fs = require("fs");
 const { DatabaseSync } = require("node:sqlite");
-const { one, all, run, close } = require("../db");
+const { one, all, run, close, TABLE_PREFIX } = require("../db");
 
 const FILE = process.env.SQLITE_FILE || path.join(__dirname, "..", "data", "nri.db");
 const TABLES = ["members", "admins", "volunteers", "tickets", "ticket_events", "meet_requests", "whatsapp_requests",
@@ -23,15 +23,16 @@ const ts = (v) => (typeof v === "string" && /^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/.t
     if (!srcTables.has(table)) continue;
     const rows = src.prepare(`SELECT * FROM ${table}`).all();
     if (!rows.length) { console.log(`${table}: empty`); continue; }
-    if ((await one(`SELECT COUNT(*) AS n FROM ${table}`)).n > 0) {
+    const dest = TABLE_PREFIX + table; // old SQLite name → ysr_nri_wing_<name>
+    if ((await one(`SELECT COUNT(*) AS n FROM ${dest}`)).n > 0) {
       if (!force) { console.log(`${table}: target already has rows – stopping. Use --force to skip such tables.`); process.exitCode = 1; break; }
       console.log(`${table}: skipped (target not empty)`); continue;
     }
-    const pgCols = new Set((await all("SELECT column_name FROM information_schema.columns WHERE table_name = ?", table)).map((c) => c.column_name));
+    const pgCols = new Set((await all("SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = ?", dest)).map((c) => c.column_name));
     const cols = Object.keys(rows[0]).filter((c) => pgCols.has(c));
-    const sql = `INSERT INTO ${table} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
+    const sql = `INSERT INTO ${dest} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`;
     for (const r of rows) await run(sql, ...cols.map((c) => ts(r[c])));
-    if (pgCols.has("id")) await one(`SELECT setval(pg_get_serial_sequence('${table}', 'id'), (SELECT COALESCE(MAX(id), 1) FROM ${table}))`);
+    if (pgCols.has("id")) await one(`SELECT setval(pg_get_serial_sequence('${dest}', 'id'), (SELECT COALESCE(MAX(id), 1) FROM ${dest}))`);
     console.log(`${table}: ${rows.length} rows copied`);
   }
   src.close();

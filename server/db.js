@@ -5,6 +5,10 @@
 const path = require("path");
 
 const DATA_DIR = path.join(__dirname, "data");
+// every table is named ysr_nri_wing_<table>, so it can share a Supabase project with other apps
+const TABLE_PREFIX = "ysr_nri_wing_";
+const TABLES = ["members", "admins", "volunteers", "tickets", "ticket_events", "meet_requests", "whatsapp_requests",
+  "rsvps", "task_done", "questions", "country_leaders", "social_photos", "app_state"];
 const ON_VERCEL = !!process.env.VERCEL;
 
 // timestamps → "YYYY-MM-DD HH:MM:SS" in UTC (the format the website and admin panel expect)
@@ -19,7 +23,7 @@ function fmtTs(v) {
 const PARSERS = { 20: (v) => parseInt(v, 10), 1700: (v) => parseFloat(v), 1114: fmtTs, 1184: fmtTs };
 
 const SCHEMA = `
-CREATE TABLE IF NOT EXISTS members (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_members (
   id            SERIAL PRIMARY KEY,
   member_no     TEXT NOT NULL UNIQUE,
   name          TEXT NOT NULL,
@@ -35,10 +39,10 @@ CREATE TABLE IF NOT EXISTS members (
   consent_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE UNIQUE INDEX IF NOT EXISTS members_email_key ON members (lower(email));
-CREATE INDEX IF NOT EXISTS idx_members_chapter ON members (chapter);
+CREATE UNIQUE INDEX IF NOT EXISTS ysr_nri_wing_members_email_key ON ysr_nri_wing_members (lower(email));
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_members_chapter ON ysr_nri_wing_members (chapter);
 
-CREATE TABLE IF NOT EXISTS admins (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_admins (
   id          SERIAL PRIMARY KEY,
   username    TEXT NOT NULL,
   pass_hash   TEXT NOT NULL,
@@ -46,9 +50,9 @@ CREATE TABLE IF NOT EXISTS admins (
   chapter     TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE UNIQUE INDEX IF NOT EXISTS admins_username_key ON admins (lower(username));
+CREATE UNIQUE INDEX IF NOT EXISTS ysr_nri_wing_admins_username_key ON ysr_nri_wing_admins (lower(username));
 
-CREATE TABLE IF NOT EXISTS volunteers (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_volunteers (
   id         SERIAL PRIMARY KEY,
   name       TEXT NOT NULL,
   phone      TEXT NOT NULL,
@@ -57,10 +61,10 @@ CREATE TABLE IF NOT EXISTS volunteers (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS tickets (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_tickets (
   id              SERIAL PRIMARY KEY,
   ticket_no       TEXT NOT NULL UNIQUE,
-  member_id       INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  member_id       INTEGER REFERENCES ysr_nri_wing_members(id) ON DELETE SET NULL,
   name            TEXT NOT NULL,
   phone           TEXT,
   country         TEXT NOT NULL,
@@ -70,7 +74,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   urgent          INTEGER NOT NULL DEFAULT 0,
   status          TEXT NOT NULL DEFAULT 'Received' CHECK (status IN ('Received', 'Assigned', 'In progress', 'Resolved')),
   notes           TEXT,
-  volunteer_id    INTEGER REFERENCES volunteers(id) ON DELETE SET NULL,
+  volunteer_id    INTEGER REFERENCES ysr_nri_wing_volunteers(id) ON DELETE SET NULL,
   volunteer_token TEXT UNIQUE,
   assigned_at     TIMESTAMPTZ,
   resolved_at     TIMESTAMPTZ,
@@ -79,23 +83,23 @@ CREATE TABLE IF NOT EXISTS tickets (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets (status);
-CREATE INDEX IF NOT EXISTS idx_tickets_member ON tickets (member_id);
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_tickets_status ON ysr_nri_wing_tickets (status);
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_tickets_member ON ysr_nri_wing_tickets (member_id);
 
-CREATE TABLE IF NOT EXISTS ticket_events (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_ticket_events (
   id         SERIAL PRIMARY KEY,
-  ticket_id  INTEGER NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,
+  ticket_id  INTEGER NOT NULL REFERENCES ysr_nri_wing_tickets(id) ON DELETE CASCADE,
   status     TEXT NOT NULL,
   note       TEXT,
   by_who     TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_ticket_events_ticket ON ticket_events (ticket_id);
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_ticket_events_ticket ON ysr_nri_wing_ticket_events (ticket_id);
 
-CREATE TABLE IF NOT EXISTS meet_requests (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_meet_requests (
   id          SERIAL PRIMARY KEY,
   ref         TEXT NOT NULL UNIQUE,
-  member_id   INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  member_id   INTEGER REFERENCES ysr_nri_wing_members(id) ON DELETE SET NULL,
   name        TEXT NOT NULL,
   phone       TEXT NOT NULL,
   email       TEXT NOT NULL,
@@ -109,7 +113,7 @@ CREATE TABLE IF NOT EXISTS meet_requests (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS whatsapp_requests (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_whatsapp_requests (
   id          SERIAL PRIMARY KEY,
   chapter     TEXT NOT NULL,
   name        TEXT NOT NULL,
@@ -118,23 +122,23 @@ CREATE TABLE IF NOT EXISTS whatsapp_requests (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS rsvps (
-  member_id   INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_rsvps (
+  member_id   INTEGER NOT NULL REFERENCES ysr_nri_wing_members(id) ON DELETE CASCADE,
   event_id    TEXT NOT NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (member_id, event_id)
 );
 
-CREATE TABLE IF NOT EXISTS task_done (
-  member_id   INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_task_done (
+  member_id   INTEGER NOT NULL REFERENCES ysr_nri_wing_members(id) ON DELETE CASCADE,
   task_id     TEXT NOT NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (member_id, task_id)
 );
 
-CREATE TABLE IF NOT EXISTS questions (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_questions (
   id          SERIAL PRIMARY KEY,
-  member_id   INTEGER REFERENCES members(id) ON DELETE SET NULL,
+  member_id   INTEGER REFERENCES ysr_nri_wing_members(id) ON DELETE SET NULL,
   name        TEXT NOT NULL,
   text        TEXT NOT NULL,
   hidden      INTEGER NOT NULL DEFAULT 0,
@@ -142,7 +146,7 @@ CREATE TABLE IF NOT EXISTS questions (
 );
 
 -- country committees: President, Vice President … (filled in by admins)
-CREATE TABLE IF NOT EXISTS country_leaders (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_country_leaders (
   id         SERIAL PRIMARY KEY,
   country    TEXT NOT NULL,
   role       TEXT NOT NULL,
@@ -153,7 +157,7 @@ CREATE TABLE IF NOT EXISTS country_leaders (
 );
 
 -- photos pulled from the wing's Facebook / Instagram (see social.js)
-CREATE TABLE IF NOT EXISTS social_photos (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_social_photos (
   id         SERIAL PRIMARY KEY,
   source     TEXT NOT NULL,            -- facebook | instagram
   ext_id     TEXT NOT NULL,
@@ -167,7 +171,7 @@ CREATE TABLE IF NOT EXISTS social_photos (
 );
 
 -- small key/value store (e.g. last gallery check)
-CREATE TABLE IF NOT EXISTS app_state (
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_app_state (
   key        TEXT PRIMARY KEY,
   value      TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -175,19 +179,19 @@ CREATE TABLE IF NOT EXISTS app_state (
 
 -- Supabase: block direct access through the public API (anon / authenticated keys).
 -- The website's server connects as the database owner, which is not affected.
-ALTER TABLE members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
-ALTER TABLE volunteers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ticket_events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE meet_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE whatsapp_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
-ALTER TABLE task_done ENABLE ROW LEVEL SECURITY;
-ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE country_leaders ENABLE ROW LEVEL SECURITY;
-ALTER TABLE social_photos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE app_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_volunteers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_tickets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_ticket_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_meet_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_whatsapp_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_rsvps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_task_done ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_country_leaders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_social_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_app_state ENABLE ROW LEVEL SECURITY;
 `;
 
 /* ---------- driver: pg (Supabase) or PGlite (local) ---------- */
@@ -213,6 +217,12 @@ async function connect() {
   const { PGlite } = await import(mod);
   const db = new PGlite(dir, { parsers: PARSERS });
   await db.waitReady;
+  // this computer only: tables from before the ysr_nri_wing_ prefix are renamed (keeps the local data)
+  const { rows: old } = await db.query("SELECT tablename FROM pg_tables WHERE schemaname = 'public'");
+  const have = new Set(old.map((r) => r.tablename));
+  for (const t of TABLES) {
+    if (have.has(t) && !have.has(TABLE_PREFIX + t)) await db.exec(`ALTER TABLE ${t} RENAME TO ${TABLE_PREFIX}${t}`);
+  }
   return {
     exec: (sql) => db.exec(sql),
     query: async (sql, params) => { const r = await db.query(sql, params); return { rows: r.rows, changes: r.affectedRows || 0 }; },
@@ -238,11 +248,11 @@ function getDb() {
 async function bootstrapAdmin(d) {
   const u = process.env.ADMIN_USERNAME, p = process.env.ADMIN_PASSWORD;
   if (!u || !p) return;
-  const { rows } = await d.query("SELECT COUNT(*) AS n FROM admins");
+  const { rows } = await d.query("SELECT COUNT(*) AS n FROM ysr_nri_wing_admins");
   if (rows[0].n > 0) return;
   if (p.length < 10) { console.error("[db] ADMIN_PASSWORD must be at least 10 characters – first admin not created."); return; }
   const { hashPassword } = require("./auth");
-  await d.query("INSERT INTO admins (username, pass_hash, role) VALUES ($1, $2, 'admin')", [u, hashPassword(p)]);
+  await d.query("INSERT INTO ysr_nri_wing_admins (username, pass_hash, role) VALUES ($1, $2, 'admin')", [u, hashPassword(p)]);
   console.log(`[db] first admin "${u}" created from ADMIN_USERNAME / ADMIN_PASSWORD.`);
 }
 
@@ -256,4 +266,4 @@ const all = async (sql, ...args) => (await query(sql, args)).rows;
 const run = async (sql, ...args) => { const r = await query(sql, args); return { changes: r.changes, lastInsertRowid: r.rows[0] && r.rows[0].id }; };
 const close = async () => { if (ready) { const d = await ready; await d.close(); ready = null; } };
 
-module.exports = { one, all, run, close, getDb, fmtTs, DATA_DIR };
+module.exports = { one, all, run, close, getDb, fmtTs, DATA_DIR, TABLE_PREFIX, TABLES };

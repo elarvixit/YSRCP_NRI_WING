@@ -25,7 +25,10 @@ Without a `DATABASE_URL` it uses a built-in local Postgres in `server/data/pglit
 3. **Project Settings → API** → copy the **Project URL** (`SUPABASE_URL`) and the
    **service_role** key (`SUPABASE_SERVICE_ROLE_KEY`). Keep the service key secret.
 
-The tables are created automatically on the first request. The public `gallery` storage bucket is
+**Tables:** run [server/schema.sql](server/schema.sql) in Supabase → SQL Editor. Every table is named
+`ysr_nri_wing_<table>` (e.g. `ysr_nri_wing_members`, `ysr_nri_wing_tickets`), so the project can be shared with other
+apps. (The server also creates them automatically on its first request.) If an older version created tables without
+the prefix, [server/cleanup-old-tables.sql](server/cleanup-old-tables.sql) removes them – only the empty YSRCP ones. The public `gallery` storage bucket is
 created automatically by the first gallery check.
 
 ### 2. Vercel (hosting)
