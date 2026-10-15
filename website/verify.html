@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Verify Member | YSRCP NRI Wing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --blue: #0b3a8c; --blue-2: #1652c4; --green: #0f9d58; --ink: #0f1b33; --ink-2: #4a5878; --red: #c62828; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: Outfit, system-ui, sans-serif; color: var(--ink);
+    background: linear-gradient(160deg, #071a3d, var(--blue) 55%, var(--green)); display: grid; place-items: center; padding: 24px 16px; }
+  .card { width: min(420px, 100%); background: #fff; border-radius: 24px; padding: 28px 24px; text-align: center; box-shadow: 0 30px 60px -25px rgba(0,0,0,.6); }
+  .brand { font-weight: 800; color: var(--blue); letter-spacing: .02em; }
+  .brand small { display: block; font-weight: 400; color: var(--ink-2); font-size: .8rem; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; margin: 22px 0 18px; padding: 10px 18px; border-radius: 30px; font-weight: 800; font-size: 1rem; }
+  .ok { background: #e7f6ee; color: var(--green); }
+  .bad { background: #fdecec; color: var(--red); }
+  .photo { width: 112px; height: 112px; margin: 0 auto 12px; border-radius: 20px; overflow: hidden; border: 3px solid #e3e9f4; background: linear-gradient(135deg, var(--blue-2), var(--green));
+    display: grid; place-items: center; color: #fff; font-size: 2.4rem; font-weight: 800; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; }
+  h1 { margin: 0; font-size: 1.5rem; }
+  .muted { color: var(--ink-2); }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; text-align: left; margin: 20px 0 0; padding: 16px; border-radius: 16px; background: #f3f6fc; }
+  dt { color: var(--ink-2); font-size: .85rem; }
+  dd { margin: 0; font-weight: 600; }
+  .mono { font-family: ui-monospace, monospace; letter-spacing: .06em; }
+  a.home { display: inline-block; margin-top: 22px; color: var(--blue); font-weight: 600; text-decoration: none; }
+</style>
+</head>
+<body>
+<main class="card" id="app">
+  <div class="brand">YSRCP NRI Wing<small>Member card check</small></div>
+  <p class="muted" style="margin-top:28px">Checking…</p>
+</main>
+<script>
+(() => {
+  const app = document.getElementById("app");
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const no = (new URLSearchParams(location.search).get("m") || "").trim().toUpperCase();
+  const brand = `<div class="brand">YSRCP NRI Wing<small>Member card check</small></div>`;
+  const home = `<a class="home" href="/">Visit the YSRCP NRI Wing website →</a>`;
+  const since = (d) => { if (!d) return ""; const x = new Date(d.includes("T") ? d : d.replace(" ", "T") + "Z"); return isNaN(x) ? "" : x.toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }); };
+  const fail = (msg) => { app.innerHTML = `${brand}<div class="badge bad">❌ Not verified</div><p class="muted">${esc(msg)}</p>${no ? `<p class="mono">${esc(no)}</p>` : ""}${home}`; };
+
+  if (!/^YSRNRI-\d{4}-\d{5}$/.test(no)) return fail("This QR code does not contain a valid member number.");
+  fetch("/api/verify/" + encodeURIComponent(no))
+    .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+    .then(({ ok, d }) => {
+      if (!ok || !d.valid) return fail("No member found with this number. Please ask the member to show their card from the website.");
+      app.innerHTML = `${brand}
+        <div class="badge ok">✅ Verified member</div>
+        <div class="photo">${d.photo ? `<img src="${d.photo}" alt="">` : esc(d.name[0] || "?")}</div>
+        <h1>${esc(d.name)}</h1>
+        <p class="muted" style="margin:4px 0 0">${esc(d.city)}, ${esc(d.country)}</p>
+        <dl><dt>Member no.</dt><dd class="mono">${esc(d.memberNo)}</dd><dt>Member since</dt><dd>${esc(since(d.since))}</dd></dl>
+        ${home}`;
+    })
+    .catch(() => fail("Could not check right now – please try again in a moment."));
+})();
+</script>
+</body>
+</html>

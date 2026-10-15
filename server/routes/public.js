@@ -268,6 +268,18 @@ r.get("/country-teams", async (_req, res) => {
 });
 
 /* ---------- public numbers ---------- */
+/* ---------- member card QR check (no email / phone) ---------- */
+const verifyLimit = U.rateLimit("verify", 60, 10 * 60e3);
+r.get("/verify/:no", verifyLimit, async (req, res) => {
+  const no = String(req.params.no || "").trim().toUpperCase();
+  if (!/^YSRNRI-\d{4}-\d{5}$/.test(no)) return res.status(404).json({ valid: false });
+  const m = await one("SELECT name, city, country, photo, created_at FROM ysr_nri_wing_members WHERE member_no = ?", no);
+  if (!m) return res.status(404).json({ valid: false });
+  const p = m.name.trim().split(/\s+/);
+  res.json({ valid: true, memberNo: no, name: p[0] + (p[1] ? " " + p[p.length - 1][0] + "." : ""), city: m.city, country: m.country,
+    since: m.created_at, photo: m.photo || null });
+});
+
 r.get("/stats", async (_req, res) => {
   const [m, c, t] = await Promise.all([
     one("SELECT COUNT(*) AS n FROM ysr_nri_wing_members"),

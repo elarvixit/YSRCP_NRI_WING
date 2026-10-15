@@ -27,6 +27,8 @@ const PHOTOS = {
 /* ---------- Photos from the wing's current website (ysrcpnriwing.org) ----------
    For launch, copy these into website/images/ and change SITE to "images". */
 const SITE = "https://www.ysrcpnriwing.org";
+// public address of THIS website (used in the member-card QR code; change it when you add your own domain)
+const PUBLIC_SITE = "https://ysrcpnriwing-eight.vercel.app";
 const SITE_CREDIT = "YSRCP NRI Wing (ysrcpnriwing.org)";
 const SITE_PHOTOS = {
   worldMap:  { src: SITE + "/Slider/msimg1.jpeg", cap: "Y.S. Jagan Mohan Reddy", credit: SITE_CREDIT },

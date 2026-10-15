@@ -1265,7 +1265,8 @@
   function qrDataURL(text) {
     try { const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createDataURL(4, 0); } catch { return ""; }
   }
-  const cardPayload = (u) => `https://www.ysrcpnriwing.org/verify?m=${u.no}`;
+  // QR → verify page on the live site (on this computer too, so phones can open it)
+  const cardPayload = (u) => `${/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? PUBLIC_SITE : location.origin}/verify.html?m=${encodeURIComponent(u.no)}`;
 
   /* member photo: square crop, 320px JPEG (about 30 KB) */
   function pickPhoto() {
