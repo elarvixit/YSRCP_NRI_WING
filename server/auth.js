@@ -15,10 +15,12 @@ function loadSecret() {
   fs.writeFileSync(file, s, { mode: 0o600 });
   return s;
 }
-const SECRET = loadSecret();
+// loaded on first use, so a missing setting gives a clear error instead of crashing the whole API
+let SECRET;
+const secret = () => SECRET || (SECRET = loadSecret());
 
 const b64 = (buf) => Buffer.from(buf).toString("base64url");
-const sign = (data) => crypto.createHmac("sha256", SECRET).update(data).digest("base64url");
+const sign = (data) => crypto.createHmac("sha256", secret()).update(data).digest("base64url");
 
 const MEMBER_DAYS = 90;
 const ADMIN_HOURS = 12;

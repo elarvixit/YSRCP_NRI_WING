@@ -19,9 +19,26 @@ const pointsOf = async (memberId) => {
   return U.REGISTER_POINTS + done.reduce((s, t) => s + (U.TASK_POINTS[t] || 0), 0);
 };
 
+// health check – also reports which settings are missing (names only, never values)
 r.get("/health", async (_req, res) => {
-  await one("SELECT 1 AS ok");
-  res.json({ ok: true, time: new Date().toISOString() });
+  const missing = [];
+  if (process.env.VERCEL) {
+    if (!process.env.DATABASE_URL) missing.push("DATABASE_URL");
+    if (!process.env.APP_SECRET || process.env.APP_SECRET.length < 32) missing.push("APP_SECRET (at least 32 characters)");
+  }
+  if (missing.length) return res.status(500).json({ ok: false, problem: "Missing settings in Vercel: " + missing.join(", ") });
+  try {
+    await one("SELECT 1 AS ok");
+  } catch (e) {
+    const code = e.code ? ` (code ${e.code})` : "";
+    const hint = /password authentication failed/i.test(e.message) ? "wrong database password in DATABASE_URL"
+      : /ENOTFOUND|getaddrinfo/i.test(e.message) ? "database address in DATABASE_URL not found – check the host name"
+      : /Tenant or user not found/i.test(e.message) ? "DATABASE_URL user/project not found – copy the Transaction pooler URI again"
+      : /timeout|ETIMEDOUT|ECONNREFUSED/i.test(e.message) ? "could not reach the database – use the Transaction pooler URI (port 6543)"
+      : "database connection failed";
+    return res.status(500).json({ ok: false, problem: hint + code });
+  }
+  res.json({ ok: true, database: "connected", time: new Date().toISOString() });
 });
 
 /* ---------- members ---------- */
