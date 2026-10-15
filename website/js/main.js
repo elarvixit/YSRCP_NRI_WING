@@ -1159,7 +1159,8 @@
         </div>
         <div class="stack" data-step="2" hidden>
           <div class="reg-photo"><button type="button" class="photo-pick" data-reg-photo aria-label="Add your photo"><span>📷</span></button><div><b>Your photo</b> <small class="muted">(optional)</small><br><small class="muted">Shown on your digital member card.</small></div></div>
-          <label>Profession<input name="profession" required placeholder="e.g. Software engineer, Doctor, Student"></label>
+          <label>Profession<select name="profession" required><option value="">Choose your work…</option>${Object.entries(PROFESSIONS).map(([g, list]) => `<optgroup label="${esc(g)}">${list.map((p) => `<option>${esc(p)}</option>`).join("")}</optgroup>`).join("")}<option value="__other">Other – type my work</option></select></label>
+          <label data-other-prof hidden>Your work<input name="professionOther" maxlength="80" placeholder="Type your profession"></label>
           <div class="row2"><label>Home district (AP)<select name="district" required><option value="">Choose…</option>${DISTRICTS.map((d) => `<option>${esc(d)}</option>`).join("")}</select></label>
           <label>Assembly constituency<select name="constituency" required disabled><option value="">Choose district first</option></select></label></div>
           <label class="check"><input type="checkbox" required> <span>I am an Indian citizen / person of Indian origin and consent to the <a href="#" data-modal-text="privacy" style="color:var(--blue)">privacy notice</a> (DPDP Act 2023).</span></label>
@@ -1187,6 +1188,12 @@
       showOther();
     });
     citySel.addEventListener("change", showOther);
+    // profession: "Other" shows a text box
+    form.elements.profession.addEventListener("change", (e) => {
+      const other = e.target.value === "__other";
+      $("[data-other-prof]", form).hidden = !other; form.elements.professionOther.required = other;
+      if (other) form.elements.professionOther.focus();
+    });
     // district → its assembly constituencies
     const acSel = form.elements.constituency;
     form.elements.district.addEventListener("change", (e) => {
@@ -1217,6 +1224,8 @@
       f.country = WORLD_GEO[f.country] ? WORLD_GEO[f.country].n : f.country;
       if (!f.city || f.city === "__other") f.city = (f.cityOther || "").trim();
       delete f.cityOther;
+      if (f.profession === "__other") f.profession = (f.professionOther || "").trim();
+      delete f.professionOther;
       const near = CHAPTERS.find((c) => c.iso === iso && c.city.toLowerCase() === f.city.toLowerCase()) || CHAPTERS.find((c) => c.iso === iso);
       if (API.online) {
         const btn = $("button:not([type])", form); if (btn) btn.disabled = true;

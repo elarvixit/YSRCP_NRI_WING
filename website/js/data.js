@@ -514,3 +514,15 @@ const AP_CONSTITUENCIES = {
 const CARD_LEADERS = [
   { name: "YS Jagan", src: "images/jagan-cm-office.webp", size: 300, x: 52.5, y: 38 }
 ];
+
+/* registration: profession list, grouped (last option "Other" lets people type their own) */
+const PROFESSIONS = {
+  "IT & Software": ["Software engineer / developer", "Data / AI / analytics", "IT support / network / cloud", "Project / product manager (IT)", "Testing / QA", "Cyber security", "UI / UX designer"],
+  "Healthcare": ["Doctor", "Nurse", "Pharmacist", "Dentist", "Lab / medical technician", "Physiotherapist", "Healthcare administration"],
+  "Engineering & Technical": ["Civil engineer", "Mechanical engineer", "Electrical / electronics engineer", "Chemical / petroleum engineer", "Oil & gas technician", "Architect", "Quality / safety (HSE) officer"],
+  "Business & Finance": ["Business owner / entrepreneur", "Accountant / CA", "Banking / finance", "Sales / marketing", "HR / administration", "Management / consultant", "Real estate", "Shop / trade / retail"],
+  "Education & Research": ["Student", "Teacher / lecturer / professor", "Researcher / scientist", "PhD scholar"],
+  "Gulf & skilled work": ["Construction worker", "Mason / carpenter", "Electrician", "Plumber", "Welder / fitter", "Driver", "Heavy equipment operator", "Mechanic / technician", "Painter", "Factory / production worker", "Warehouse / logistics", "Security guard", "Cleaner / housekeeping", "Domestic worker / housemaid", "Cook / chef", "Hotel / restaurant staff", "Salesman / shop staff", "Farm / agriculture worker"],
+  "Professional services": ["Lawyer / legal", "Journalist / media", "Government / public sector", "Airline / aviation staff", "Seafarer / merchant navy", "Artist / designer", "Social worker / NGO"],
+  "Other": ["Homemaker", "Retired", "Looking for work", "Self-employed"]
+};
