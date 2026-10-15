@@ -1344,9 +1344,9 @@
         const l = CARD_LEADERS[k], R = 62, cx = W - 170 - (CARD_LEADERS.length - 1 - k) * 145, cy = 190;
         const bw = l.size / 100, bh = bw * im.naturalHeight / im.naturalWidth;
         const sx = (l.x / 100) * (bw - 1) / bw * im.naturalWidth, sy = (l.y / 100) * (bh - 1) / bh * im.naturalHeight;
-        x.save(); x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip();
+        x.save(); rr(cx - R, cy - R, 2 * R, 2 * R, 18); x.clip();
         x.drawImage(im, sx, sy, im.naturalWidth / bw, im.naturalHeight / bh, cx - R, cy - R, 2 * R, 2 * R); x.restore();
-        ring(cx, cy, R, 5);
+        rr(cx - R, cy - R, 2 * R, 2 * R, 18); x.strokeStyle = "rgba(255,255,255,.9)"; x.lineWidth = 5; x.stroke();
         x.fillStyle = "#fff"; x.font = "600 22px Outfit, sans-serif"; x.textAlign = "center"; x.fillText(l.name, cx, cy + R + 32); x.textAlign = "left";
       });
       if (qr) { rr(W - 280, H - 280, 220, 220, 20); x.fillStyle = "#fff"; x.fill(); x.imageSmoothingEnabled = false; x.drawImage(qr, W - 266, H - 266, 192, 192); }

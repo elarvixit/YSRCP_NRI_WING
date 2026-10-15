@@ -586,7 +586,7 @@ label.check input { margin-top: 3px; accent-color: var(--green); }
 .member-card .mc-who { grid-column: 1; grid-row: 3; }
 .member-card .mc-leaders { position: absolute; top: 58px; right: 22px; display: flex; gap: 12px; z-index: 1; }
 .member-card .mc-leaders figure { margin: 0; text-align: center; }
-.member-card .mc-leaders i { display: block; width: 58px; height: 58px; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); box-shadow: 0 6px 14px -6px rgba(0,0,0,.5); background-color: #fff; transition: transform .25s; }
+.member-card .mc-leaders i { display: block; width: 72px; height: 72px; border-radius: 14px; border: 2px solid rgba(255,255,255,.9); box-shadow: 0 6px 14px -6px rgba(0,0,0,.5); background-color: #fff; transition: transform .25s; }
 .member-card .mc-leaders figure:hover i { transform: translateY(-3px) scale(1.06); }
 .member-card .mc-leaders figcaption { font-size: .62rem; font-weight: 600; margin-top: 4px; opacity: .92; white-space: nowrap; }
 .avatar { overflow: hidden; }
@@ -658,7 +658,7 @@ label.check input { margin-top: 3px; accent-color: var(--green); }
   .member-card { aspect-ratio: auto; min-height: 220px; }
   .member-card .mc-qr { width: 76px; height: 76px; }
   .member-card .mc-leaders { top: 52px; right: 16px; gap: 8px; }
-  .member-card .mc-leaders i { width: 44px; height: 44px; }
+  .member-card .mc-leaders i { width: 56px; height: 56px; border-radius: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
