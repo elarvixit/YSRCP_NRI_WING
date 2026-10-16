@@ -232,8 +232,18 @@ r.post("/me/delete-request", requireMember, async (req, res) => {
   if (await one("SELECT id FROM ysr_nri_wing_deletion_requests WHERE member_id = ? AND status = 'pending'", m.id)) {
     return res.status(409).json({ error: "You have already sent a deletion request. Our team will review it soon." });
   }
+  const reason = U.text(req.body && req.body.reason, "Reason", { max: 500, required: false }) || null;
   await run("INSERT INTO ysr_nri_wing_deletion_requests (member_id, member_no, name, email, reason) VALUES (?, ?, ?, ?, ?)",
-    m.id, m.member_no, m.name, m.email, U.text(req.body && req.body.reason, "Reason", { max: 500, required: false }) || null);
+    m.id, m.member_no, m.name, m.email, reason);
+  // tell the admin by email (ADMIN_ALERT_EMAIL in Vercel can change who gets it)
+  const site = (process.env.SITE_URL || `${req.protocol}://${req.get("host")}`).replace(/\/+$/, "");
+  const to = process.env.ADMIN_ALERT_EMAIL || "ganesh.derangula@elarvix.com";
+  const lines = [`Member: ${m.name} (${m.member_no})`, `Email: ${m.email}`, `Reason: ${reason || "(none given)"}`];
+  await mailer.send(to, `Account deletion request – ${m.name} (${m.member_no})`,
+    lines.join("\n") + `\n\nReview it in the admin panel: ${site}/admin.html`,
+    mailer.layout("New account deletion request", lines.map((l) => `<p style="margin:0 0 6px">${mailer.escHtml(l)}</p>`).join("") +
+      `<p style="margin:16px 0 0"><a href="${site}/admin.html" style="background:#1652c4;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">Open admin panel</a></p>`,
+      "Sent to the YSRCP NRI Wing admin."), "admin-deletion");
   res.status(201).json({ ok: true, message: "Request sent. An admin will review it and your account will be deleted after approval." });
 });
 r.delete("/me/delete-request", requireMember, async (req, res) => {
