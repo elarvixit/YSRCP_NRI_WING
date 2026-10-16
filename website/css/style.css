@@ -774,7 +774,7 @@ label.check input { margin-top: 3px; accent-color: var(--green); }
 .journey-card:hover .j-photo { transform: scale(1.05); transition: transform 1.2s var(--ease), opacity .6s; }
 
 .live-leader { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.live-leader img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; object-position: top; border: 3px solid #fff; box-shadow: 0 0 0 4px rgba(224,36,36,.5); animation: ping-red 2s infinite; }
+.live-leader .ll-photo { flex: none; width: 58px; height: 58px; border-radius: 50%; background: #fff url("../images/jagan-cm-office.webp") 52% 30% / 300% auto no-repeat; border: 3px solid #fff; box-shadow: 0 0 0 4px rgba(224,36,36,.5); animation: ping-red 2s infinite; }
 @keyframes ping-red { 70% { box-shadow: 0 0 0 10px rgba(224,36,36,0); } 100% { box-shadow: 0 0 0 0 rgba(224,36,36,0); } }
 .live-leader b { display: block; }
 .live-leader small { color: #9fb2d8; font-size: .8rem; }

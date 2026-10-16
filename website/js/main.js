@@ -379,7 +379,7 @@
   }
 
   // leader photo in the Live with Leaders card
-  $("#liveLeader").innerHTML = `<img src="${esc(PHOTOS.portrait.src)}" alt="Y.S. Jagan Mohan Reddy"><div><b>Y.S. Jagan Mohan Reddy</b><small>President, YSRCP · monthly town hall</small></div>`;
+  $("#liveLeader").innerHTML = `<span class="ll-photo" role="img" aria-label="Y.S. Jagan Mohan Reddy"></span><div><b>Y.S. Jagan Mohan Reddy</b><small>President, YSRCP · monthly town hall</small></div>`;
 
   /* ---------- leadership ---------- */
   const photoStyle = (p) => `background-image:url(&quot;${esc(p.src)}&quot;);background-size:${p.crop ? p.crop.size : "cover"};background-position:${p.crop ? p.crop.pos : "center top"}`;
