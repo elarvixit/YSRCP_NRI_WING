@@ -65,8 +65,9 @@ r.post("/verify/send", verifyLimit6, async (req, res) => {
   await run("INSERT INTO ysr_nri_wing_verify_codes (channel, target, code_hash, expires_at) VALUES (?, ?, ?, now() + interval '10 minutes')", ch, target, vHash(ch, target, code));
   const text = `Your YSRCP NRI Wing verification code is ${code}. It works for 10 minutes.`;
   if (ch === "email") {
-    await mailer.send(target, `YSRCP NRI Wing verification code: ${code}`, text,
+    const sent = await mailer.send(target, `YSRCP NRI Wing verification code: ${code}`, text,
       mailer.layout("Verify your email", `<p>Your verification code is</p><p style="font-size:32px;font-weight:bold;letter-spacing:6px">${code}</p><p>It works for 10 minutes.</p>`), "verify-code");
+    if (!sent) return res.status(502).json({ error: "We could not send the email right now. Please check the address or try again in a minute." });
   } else {
     await sms.send(target, text);
   }

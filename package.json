@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "YSRCP NRI Wing website + backend (Express + Postgres/Supabase, deployable on Vercel)",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node server/server.js",
     "create-admin": "node server/create-admin.js",
@@ -12,6 +14,7 @@
   },
   "dependencies": {
     "express": "5.2.0",
+    "nodemailer": "10.0.13",
     "pg": "8.23.1"
   },
   "devDependencies": {

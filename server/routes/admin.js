@@ -41,7 +41,7 @@ r.get("/summary", async (req, res) => {
     ch ? count("SELECT COUNT(*) AS n FROM ysr_nri_wing_whatsapp_requests WHERE status = 'New' AND chapter = ?", ch) : count("SELECT COUNT(*) AS n FROM ysr_nri_wing_whatsapp_requests WHERE status = 'New'"),
     ch ? [] : all("SELECT country, COUNT(*) AS n FROM ysr_nri_wing_members GROUP BY country ORDER BY n DESC")
   ]);
-  res.json({ me: req.admin, members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, tasksPending, assocPending, jobsPending, subscribers, deletionPending, whatsappNew, byCountry, email: mailer.configured() ? "on" : "off" });
+  res.json({ me: req.admin, members, ticketsOpen, ticketsUrgent, ticketsOverdue, ticketsUnassigned, meetNew, tasksPending, assocPending, jobsPending, subscribers, deletionPending, whatsappNew, byCountry, email: mailer.configured() ? "on" : "off", emailMethod: mailer.method() });
 });
 
 /* ---------- members ---------- */

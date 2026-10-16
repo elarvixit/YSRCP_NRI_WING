@@ -186,7 +186,7 @@
           <div class="card"><span>Task proofs to review</span><b>${s.tasksPending}</b></div>
           <div class="card alert"><span>Deletion requests</span><b>${s.deletionPending}</b></div>
           <div class="card"><span>Newsletter subscribers</span><b>${s.subscribers}</b></div>
-          <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${s.email === "on" ? "✅ On" : "⚪ Off (set RESEND_API_KEY)"}</b></div>` : ""}
+          <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${s.email === "on" ? "✅ " + esc(s.emailMethod || "On") : "⚪ Off (set SMTP_USER + SMTP_PASS)"}</b></div>` : ""}
           <div class="card"><span>New WhatsApp requests</span><b>${s.whatsappNew}</b></div>
         </div>
         ${s.byCountry.length ? `<div class="bar"><h2>Members by country</h2></div>` + table(["Country", "Members"], s.byCountry.map((c) => `<tr><td>${esc(c.country)}</td><td><b>${c.n}</b></td></tr>`)) : ""}`;
@@ -309,7 +309,7 @@
       return `<div class="bar"><h2>Monthly newsletter</h2>${exportBtn("newsletter")}</div>
         <div class="cards"><div class="card"><span>Active subscribers</span><b>${n.active}</b></div><div class="card"><span>All sign-ups</span><b>${n.total}</b></div>
         <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${n.emailOn ? "✅ On" : "⚪ Off"}</b></div></div>
-        ${n.emailOn ? "" : `<p class="muted">Email sending is off. Add <code>RESEND_API_KEY</code> and <code>MAIL_FROM</code> in Vercel to send. On this computer emails are only printed in the server window.</p>`}
+        ${n.emailOn ? "" : `<p class="muted">Email sending is off. In Vercel add <code>SMTP_USER</code> + <code>SMTP_PASS</code> (Gmail app password) – or <code>RESEND_API_KEY</code> + <code>MAIL_FROM</code>. On this computer emails are only printed in the server window.</p>`}
         <form class="links-form" id="newsSendForm"><b>Write this month's newsletter</b>
           <label>Subject<input name="subject" required maxlength="150" placeholder="YSRCP NRI Wing – October update"></label>
           <label>Message<textarea name="body" required rows="8" maxlength="8000" placeholder="Namaskaram! This month…"></textarea></label>
