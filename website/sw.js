@@ -1,7 +1,7 @@
 // YSRCP NRI Wing – service worker: works offline (incl. the member card) and loads fast.
 // Pages: network first, fall back to the saved copy. Static files: saved copy first, refreshed in the background.
 // The API (/api/…) is never cached – member data always comes fresh from the server.
-const CACHE = "nri-wing-v1";
+const CACHE = "nri-wing-v2";
 const SHELL = ["/", "/index.html", "/css/style.css", "/js/api.js", "/js/data.js", "/js/main.js", "/js/meet-wall-data.js", "/js/world-geo.js",
   "/manifest.webmanifest", "/images/icon-192.png", "/images/jagan-cm-office.webp"];
 
