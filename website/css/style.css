@@ -1514,3 +1514,12 @@ body.lang-te { font-family: "Noto Sans Telugu", Outfit, system-ui, sans-serif; }
 .del-banner.no { background: #fdecec; border-color: #f3b4b4; }
 
 .test-code { margin: 0; padding: 8px 12px; border-radius: 10px; background: #fff8e6; border: 1px dashed #f5b800; font-size: .85rem; }
+
+/* registration: email + OTP in the same step */
+.otp-email { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.otp-email .btn { min-height: 48px; white-space: nowrap; }
+.otp-box { display: grid; gap: 8px; padding: 12px; border-radius: 12px; background: #f3f6fc; border: 1px solid #e3e8f2; }
+.otp-box .code-input { font-size: 1.25rem; letter-spacing: .3em; }
+p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88rem; }
+.link-btn { background: none; border: 0; padding: 0; color: #1652c4; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
+.otp-box .code-input::placeholder { letter-spacing: normal; font-size: 1rem; }

@@ -1252,18 +1252,21 @@
       <form id="regForm" class="stack">
         <div class="stack" data-step="1">
           <label>Full name<input name="name" required autocomplete="name"></label>
-          <div class="row2"><label>Email<input name="email" type="email" required autocomplete="email"></label><label>Phone / WhatsApp<input name="phone" type="tel" required autocomplete="tel"></label></div>
+          <div class="otp-email"><label>Email<input name="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
+            <button type="button" class="btn btn-primary btn-sm" data-otp-send>Send OTP</button></div>
+          <div class="otp-box" data-otp-box hidden>
+            <small class="muted" data-otp-to></small>
+            <div class="otp-email"><label>Enter OTP<input name="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit OTP" class="code-input"></label>
+              <button type="button" class="btn btn-primary btn-sm" data-otp-check>Verify</button></div>
+            <p class="test-code" data-testcode hidden></p>
+            <small class="muted">Didn't get it? Check Spam, or <button type="button" class="link-btn" data-otp-send>send again</button>.</small>
+          </div>
+          <p class="v-ok" data-otp-ok hidden>✅ Email verified</p>
+          <label>Phone / WhatsApp<input name="phone" type="tel" required autocomplete="tel"></label>
           <div class="row2"><label>Country<select name="country" required><option value="">Choose country…</option>${Object.entries(WORLD_GEO).map(([code, g]) => `<option value="${code}">${esc(g.n)}</option>`).join("")}</select></label>
           <label>City<select name="city" required disabled><option value="">Choose country first</option></select></label></div>
           <label data-other-city hidden>Your city<input name="cityOther" maxlength="60" placeholder="Type your city"></label>
           <button type="button" class="btn btn-primary btn-block" data-next>Continue →</button>
-        </div>
-        <div class="stack" data-step="verify" hidden>
-          <p class="verify-intro">📧 We sent a 6-digit code to your email. Enter it to confirm your email and become a member.</p>
-          <div class="verify-row" data-vrow="email" hidden><label>Email code <small class="muted" data-vto="email"></small><input name="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="code-input"></label>
-            <button type="button" class="btn btn-ghost btn-sm" data-vresend="email">Send again</button><span class="v-ok" data-vok="email" hidden>✅ Verified</span></div>
-          <p class="test-code" data-testcode hidden></p>
-          <div class="row2"><button type="button" class="btn btn-ghost" data-vback>← Change details</button><button type="button" class="btn btn-primary" data-vcheck>Verify &amp; continue →</button></div>
         </div>
         <div class="stack" data-step="2" hidden>
           <div class="reg-photo"><button type="button" class="photo-pick" data-reg-photo aria-label="Add your photo"><span>📷</span></button><div><b>Your photo</b> <small class="muted">(optional)</small><br><small class="muted">Shown on your digital member card.</small></div></div>
@@ -1315,15 +1318,41 @@
     // verified email / phone (ticket from the server, tied to the exact value)
     const verified = {};
     const valueOf = (ch) => form.elements[ch].value.trim();
+    const emailOk = () => !API.online || (verified.email && verified.email.value === valueOf("email"));
+    const otpUi = () => {
+      const ok = API.online && emailOk();
+      $("[data-otp-ok]", form).hidden = !ok; $(".otp-email [data-otp-send]", form).hidden = ok;
+      if (ok) $("[data-otp-box]", form).hidden = true;
+    };
+    // changing the email after verifying needs a new OTP
+    form.elements.email.addEventListener("input", otpUi);
     async function sendCode(ch) {
+      const inp = form.elements[ch];
+      if (!inp.checkValidity()) { inp.reportValidity(); return false; }
+      const btns = $$("[data-otp-send]", form); btns.forEach((b) => (b.disabled = true));
       try {
         const r = await API.post("/verify/send", { channel: ch, value: valueOf(ch) }); toast("📨 " + r.message);
+        $("[data-otp-box]", form).hidden = false;
+        $("[data-otp-to]", form).textContent = "OTP sent to " + valueOf(ch) + " – valid for 10 minutes.";
         // test mode on this computer only: show the code on screen
-        const tc = $("[data-testcode]", form); tc.hidden = !r.testCode; if (r.testCode) tc.innerHTML = `🧪 Test mode (this computer only): your code is <b>${esc(r.testCode)}</b>`;
+        const tc = $("[data-testcode]", form); tc.hidden = !r.testCode; if (r.testCode) tc.innerHTML = `🧪 Test mode (this computer only): your OTP is <b>${esc(r.testCode)}</b>`;
+        form.elements.emailCode.value = ""; form.elements.emailCode.focus();
+        $(".otp-email [data-otp-send]", form).textContent = "Resend";
         return true;
       }
       catch (err) { toast(err.message); return false; }
+      finally { btns.forEach((b) => (b.disabled = false)); }
     }
+    async function checkCode() {
+      const code = form.elements.emailCode.value.replace(/\D/g, "");
+      if (code.length !== 6) { toast("Please enter the 6-digit OTP from your email"); form.elements.emailCode.focus(); return; }
+      try {
+        const r = await API.post("/verify/check", { channel: "email", value: valueOf("email"), code });
+        verified.email = { value: valueOf("email"), ticket: r.ticket };
+        toast("✅ Email verified"); otpUi();
+      } catch (err) { toast(err.message); }
+    }
+    form.elements.emailCode.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); checkCode(); } });
     form.addEventListener("click", async (e) => {
       if (e.target.closest("[data-reg-photo]")) {
         const ph = await pickPhoto(); if (!ph) return;
@@ -1334,35 +1363,16 @@
         const s1 = $('[data-step="1"]', form);
         const bad = $$("input, select", s1).find((i) => !i.disabled && !i.checkValidity());
         if (bad) { bad.reportValidity(); return; }
-        // email / phone verification (when the server can send codes)
-        const need = API.online ? ["email"] : []; // email code is always required online
-        const todo = need.filter((ch) => !verified[ch] || verified[ch].value !== valueOf(ch));
-        if (!todo.length) { showStep("2"); return; }
-        const btn = e.target.closest("[data-next]"); btn.disabled = true;
-        for (const ch of need) {
-          $(`[data-vrow="${ch}"]`, form).hidden = false;
-          $(`[data-vto="${ch}"]`, form).textContent = "→ " + valueOf(ch);
+        // the email must be verified with the OTP before going on
+        if (!emailOk()) {
+          toast("Please verify your email with the OTP first");
+          if ($("[data-otp-box]", form).hidden) $(".otp-email [data-otp-send]", form).focus(); else form.elements.emailCode.focus();
+          return;
         }
-        const ok = (await Promise.all(todo.map((ch) => sendCode(ch)))).every(Boolean);
-        btn.disabled = false;
-        if (ok) { showStep("verify"); const first = $(`[data-vrow="${todo[0]}"] input`, form); first && first.focus(); }
+        showStep("2");
       }
-      const rs = e.target.closest("[data-vresend]"); if (rs) sendCode(rs.dataset.vresend);
-      if (e.target.closest("[data-vback]")) showStep("1");
-      if (e.target.closest("[data-vcheck]")) {
-        const need = ["email"];
-        for (const ch of need) {
-          if (verified[ch] && verified[ch].value === valueOf(ch)) continue;
-          const code = form.elements[ch + "Code"].value.replace(/\D/g, "");
-          if (code.length !== 6) { toast("Please enter the 6-digit code from your email"); form.elements[ch + "Code"].focus(); return; }
-          try {
-            const r = await API.post("/verify/check", { channel: ch, value: valueOf(ch), code });
-            verified[ch] = { value: valueOf(ch), ticket: r.ticket };
-            $(`[data-vok="${ch}"]`, form).hidden = false;
-          } catch (err) { toast(err.message); return; }
-        }
-        toast("✅ Verified"); showStep("2");
-      }
+      if (e.target.closest("[data-otp-send]")) sendCode("email");
+      if (e.target.closest("[data-otp-check]")) checkCode();
       if (e.target.closest("[data-back]")) showStep("1");
     });
     form.addEventListener("submit", async (e) => {
