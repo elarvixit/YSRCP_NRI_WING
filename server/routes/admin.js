@@ -247,9 +247,13 @@ r.get("/newsletter", requireFullAdmin, async (_req, res) => {
   const [active, total, log] = await Promise.all([
     one("SELECT COUNT(*) AS n FROM ysr_nri_wing_newsletter WHERE status = 'active'"),
     one("SELECT COUNT(*) AS n FROM ysr_nri_wing_newsletter"),
-    all("SELECT kind, to_email, subject, status, created_at FROM ysr_nri_wing_email_log WHERE kind <> 'login-code' ORDER BY id DESC LIMIT 30")
+    all("SELECT kind, to_email, subject, status, error, created_at FROM ysr_nri_wing_email_log ORDER BY id DESC LIMIT 30")
   ]);
-  res.json({ active: active.n, total: total.n, emailOn: mailer.configured(), log });
+  res.json({ active: active.n, total: total.n, emailOn: mailer.configured(), method: mailer.method(), log: log.map((l) => ({ ...l, hint: l.error ? mailer.hint(l.error) : "" })) });
+});
+// send a test email to check the Gmail / SMTP settings
+r.post("/email-test", requireFullAdmin, async (req, res) => {
+  res.json(await mailer.test(U.email(req.body && req.body.to)));
 });
 // send to every active subscriber (one by one; fine for a few hundred – use an email-marketing tool for more)
 r.post("/newsletter/send", requireFullAdmin, async (req, res) => {

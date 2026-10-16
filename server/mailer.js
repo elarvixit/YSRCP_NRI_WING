@@ -21,6 +21,7 @@ const configured = () => smtpOn() || resendOn();
 const otpEnabled = () => configured() || (!process.env.VERCEL && process.env.MAIL_DEV_LOG === "1");
 
 let transport = null;
+let lastError = null;
 function smtp() {
   if (!transport) {
     const nodemailer = require("nodemailer");
@@ -60,6 +61,7 @@ async function send(to, subject, text, html, kind = "general") {
       status = "skipped";
     }
   } catch (e) { status = "failed"; error = e.message; }
+  lastError = error;
   // log without the message body (codes are never stored)
   try { await run("INSERT INTO ysr_nri_wing_email_log (kind, to_email, subject, status, error) VALUES (?, ?, ?, ?, ?)", kind, to, (kind.endsWith("code") ? subject.replace(/\d{6}/g, "••••••") : subject).slice(0, 200), status, error); } catch {}
   if (status === "failed") console.error("[email]", error);
@@ -69,7 +71,24 @@ async function send(to, subject, text, html, kind = "general") {
 // test mode – only on this computer: the code is also shown on screen so you can try registration without an email account
 const testMode = () => !process.env.VERCEL && process.env.MAIL_DEV_LOG === "1" && !configured();
 
+// plain-words reason for a failed email – shown in the admin panel
+function hint(error) {
+  const e = String(error || "");
+  if (/535|534|Username and Password not accepted|Invalid login|BadCredentials|Application-specific password/i.test(e))
+    return "Gmail refused the login. SMTP_PASS must be a 16-letter Google App password (not your normal Gmail password), and SMTP_USER must be the same Gmail address that created it. Make a new App password, update SMTP_PASS in Vercel and redeploy.";
+  if (/ETIMEDOUT|ECONNREFUSED|ENOTFOUND|Greeting never received|Connection timeout/i.test(e)) return "Could not reach the mail server. Check SMTP_HOST / SMTP_PORT (Gmail: leave them empty).";
+  if (/daily|limit|quota|550 5.4.5/i.test(e)) return "Gmail's daily sending limit was reached. Try again tomorrow.";
+  if (/domain|verify|403/i.test(e)) return "The sender address is not allowed. With Gmail, remove MAIL_FROM (or set it to your Gmail address).";
+  return "";
+}
+// send one test email and report exactly what happened
+async function test(to) {
+  const ok = await send(to, "YSRCP NRI Wing – test email", "This is a test email from the YSRCP NRI Wing admin panel. Email sending works!",
+    layout("Test email", "<p>Email sending works! ✅</p>", "Sent from the admin panel."), "test");
+  return { ok, method: method(), error: ok ? null : lastError || "Email sending is not set up.", hint: ok ? "" : hint(lastError) };
+}
+
 // which way emails go – shown in the admin panel
 const method = () => (smtpOn() ? `Gmail / SMTP (${SMTP_HOST})` : resendOn() ? "Resend" : "off");
 
-module.exports = { send, layout, escHtml, configured, otpEnabled, testMode, method };
+module.exports = { send, layout, escHtml, configured, otpEnabled, testMode, method, test, hint };

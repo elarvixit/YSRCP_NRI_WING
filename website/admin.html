@@ -308,14 +308,18 @@
       const n = await api("GET", "/newsletter");
       return `<div class="bar"><h2>Monthly newsletter</h2>${exportBtn("newsletter")}</div>
         <div class="cards"><div class="card"><span>Active subscribers</span><b>${n.active}</b></div><div class="card"><span>All sign-ups</span><b>${n.total}</b></div>
-        <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${n.emailOn ? "✅ On" : "⚪ Off"}</b></div></div>
+        <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${n.emailOn ? "✅ " + esc(n.method) : "⚪ Off"}</b></div></div>
+        <form class="links-form" id="emailTestForm"><b>Check email sending</b>
+          <label>Send a test email to<input name="to" type="email" required placeholder="you@example.com"></label>
+          <div><button class="btn sm">Send test email</button></div><p class="muted" id="emailTestResult"></p></form>
         ${n.emailOn ? "" : `<p class="muted">Email sending is off. In Vercel add <code>SMTP_USER</code> + <code>SMTP_PASS</code> (Gmail app password) – or <code>RESEND_API_KEY</code> + <code>MAIL_FROM</code>. On this computer emails are only printed in the server window.</p>`}
         <form class="links-form" id="newsSendForm"><b>Write this month's newsletter</b>
           <label>Subject<input name="subject" required maxlength="150" placeholder="YSRCP NRI Wing – October update"></label>
           <label>Message<textarea name="body" required rows="8" maxlength="8000" placeholder="Namaskaram! This month…"></textarea></label>
           <div><button class="btn sm">Send to ${n.active} subscriber(s)</button></div></form>
         <div class="bar"><h2 style="font-size:1.05rem">Recent emails</h2></div>` + table(["Sent", "Type", "To", "Subject", "Result"],
-        n.log.map((l) => `<tr><td class="muted">${date(l.created_at)}</td><td>${esc(l.kind)}</td><td>${esc(l.to_email)}</td><td>${esc(l.subject)}</td><td>${esc(l.status)}</td></tr>`));
+        n.log.map((l) => `<tr><td class="muted">${date(l.created_at)}</td><td>${esc(l.kind)}</td><td>${esc(l.to_email)}</td><td>${esc(l.subject)}</td>
+          <td>${esc(l.status)}${l.error ? `<br><small class="muted">${esc(l.error)}</small>` : ""}${l.hint ? `<br><small><b>${esc(l.hint)}</b></small>` : ""}</td></tr>`));
     },
     async volunteers() {
       const { volunteers } = await api("GET", "/volunteers");
@@ -439,6 +443,15 @@
       e.preventDefault();
       const f = Object.fromEntries(new FormData(e.target)); const photo = await squarePhoto(e.target.elements.photoFile.files[0]); delete f.photoFile;
       try { await api("POST", "/hall-of-fame", { ...f, photo }); toast(f.name + " added to the Hall of Fame"); show("fame"); } catch (err) { toast(err.message); }
+    }
+    if (e.target.id === "emailTestForm") {
+      e.preventDefault();
+      const out = document.getElementById("emailTestResult"); const btn = e.target.querySelector("button"); btn.disabled = true; out.textContent = "Sending…";
+      try {
+        const r = await api("POST", "/email-test", { to: e.target.elements.to.value });
+        out.innerHTML = r.ok ? "✅ Sent. Check the inbox (and Spam)." : `❌ Failed: ${esc(r.error)}${r.hint ? "<br><b>" + esc(r.hint) + "</b>" : ""}`;
+      } catch (err) { out.textContent = "❌ " + err.message; }
+      btn.disabled = false;
     }
     if (e.target.id === "newsSendForm") {
       e.preventDefault();
