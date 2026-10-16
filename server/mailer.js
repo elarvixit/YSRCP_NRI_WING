@@ -66,7 +66,10 @@ async function send(to, subject, text, html, kind = "general") {
   return status === "sent" || status === "logged";
 }
 
+// test mode – only on this computer: the code is also shown on screen so you can try registration without an email account
+const testMode = () => !process.env.VERCEL && process.env.MAIL_DEV_LOG === "1" && !configured();
+
 // which way emails go – shown in the admin panel
 const method = () => (smtpOn() ? `Gmail / SMTP (${SMTP_HOST})` : resendOn() ? "Resend" : "off");
 
-module.exports = { send, layout, escHtml, configured, otpEnabled, method };
+module.exports = { send, layout, escHtml, configured, otpEnabled, testMode, method };

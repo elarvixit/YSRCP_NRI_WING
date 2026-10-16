@@ -2,7 +2,6 @@
 const express = require("express");
 const { one, all, run } = require("../db");
 const { memberToken, optionalMember, requireMember, verifyTicket, readVerifyTicket } = require("../auth");
-const sms = require("../sms");
 const U = require("../util");
 const TK = require("../tickets");
 const crypto = require("crypto");
@@ -46,16 +45,15 @@ r.get("/health", async (_req, res) => {
 });
 
 // what the website should show (e.g. email-code login when email sending is set up)
-r.get("/config", (_req, res) => res.json({ otp: mailer.otpEnabled(), verifyEmail: mailer.otpEnabled(), verifyPhone: sms.enabled(), week: U.isoWeek() }));
+r.get("/config", (_req, res) => res.json({ otp: mailer.otpEnabled(), verifyEmail: true, emailReady: mailer.otpEnabled(), week: U.isoWeek() }));
 
-/* ---------- registration: verify email and phone with a 6-digit code ---------- */
-const verifyLimit6 = U.rateLimit("verify-code", 12, 10 * 60e3);
+/* ---------- registration: verify the email with a 6-digit code (required) ---------- */
+const verifyLimit6 = U.rateLimit("verify-code", 30, 10 * 60e3);
 const vHash = (ch, target, code) => crypto.createHash("sha256").update(`${ch}:${target}:${code}:${process.env.APP_SECRET || "local"}`).digest("hex");
-const vTarget = (ch, value) => (ch === "email" ? U.email(value) : sms.normalize(U.phone(value)));
+const vTarget = (_ch, value) => U.email(value);
 r.post("/verify/send", verifyLimit6, async (req, res) => {
-  const ch = U.oneOf(req.body && req.body.channel, ["email", "phone"], "channel");
-  if (ch === "email" && !mailer.otpEnabled()) return res.status(400).json({ error: "Email verification is not set up." });
-  if (ch === "phone" && !sms.enabled()) return res.status(400).json({ error: "Phone verification is not set up." });
+  const ch = U.oneOf((req.body && req.body.channel) || "email", ["email"], "channel");
+  if (!mailer.otpEnabled()) return res.status(503).json({ error: "Registration is paused: email verification is not set up yet. Please try again later or contact info@ysrcpnriwing.org." });
   const target = vTarget(ch, req.body.value);
   if (ch === "email" && await one("SELECT id FROM ysr_nri_wing_members WHERE lower(email) = ?", target)) {
     return res.status(409).json({ error: "This email is already registered. Please log in instead." });
@@ -64,17 +62,15 @@ r.post("/verify/send", verifyLimit6, async (req, res) => {
   await run("UPDATE ysr_nri_wing_verify_codes SET used = 1 WHERE channel = ? AND target = ? AND used = 0", ch, target);
   await run("INSERT INTO ysr_nri_wing_verify_codes (channel, target, code_hash, expires_at) VALUES (?, ?, ?, now() + interval '10 minutes')", ch, target, vHash(ch, target, code));
   const text = `Your YSRCP NRI Wing verification code is ${code}. It works for 10 minutes.`;
-  if (ch === "email") {
+  {
     const sent = await mailer.send(target, `YSRCP NRI Wing verification code: ${code}`, text,
       mailer.layout("Verify your email", `<p>Your verification code is</p><p style="font-size:32px;font-weight:bold;letter-spacing:6px">${code}</p><p>It works for 10 minutes.</p>`), "verify-code");
     if (!sent) return res.status(502).json({ error: "We could not send the email right now. Please check the address or try again in a minute." });
-  } else {
-    await sms.send(target, text);
   }
-  res.json({ ok: true, message: ch === "email" ? "We sent a 6-digit code to your email." : "We sent a 6-digit code by SMS." });
+  res.json({ ok: true, message: "We sent a 6-digit code to your email.", ...(mailer.testMode() ? { testCode: code } : {}) });
 });
 r.post("/verify/check", verifyLimit6, async (req, res) => {
-  const ch = U.oneOf(req.body && req.body.channel, ["email", "phone"], "channel");
+  const ch = U.oneOf((req.body && req.body.channel) || "email", ["email"], "channel");
   const target = vTarget(ch, req.body.value);
   const code = String(req.body.code || "").replace(/\D/g, "");
   const row = await one("SELECT * FROM ysr_nri_wing_verify_codes WHERE channel = ? AND target = ? AND used = 0 AND expires_at > now() ORDER BY id DESC LIMIT 1", ch, target);
@@ -102,13 +98,13 @@ r.post("/members", postLimit, async (req, res) => {
     constituency: U.text(b.constituency, "Constituency", { max: 80 }),
     chapter: U.text(b.chapter, "Chapter", { max: 60, required: false }) || null
   };
-  const emailOk = mailer.otpEnabled() ? readVerifyTicket(b.emailTicket, "email", m.email) : false;
-  const phoneOk = sms.enabled() ? readVerifyTicket(b.phoneTicket, "phone", sms.normalize(m.phone)) : false;
-  if (mailer.otpEnabled() && !emailOk) return res.status(400).json({ error: "Please verify your email with the code we sent." });
-  if (sms.enabled() && !phoneOk) return res.status(400).json({ error: "Please verify your phone number with the code we sent." });
   if (await one("SELECT id FROM ysr_nri_wing_members WHERE lower(email) = ?", m.email)) {
-    return res.status(409).json({ error: "This email is already registered. Please log in with your member number." });
+    return res.status(409).json({ error: "This email is already registered. Please log in instead." });
   }
+  // no membership without a verified email
+  const emailOk = readVerifyTicket(b.emailTicket, "email", m.email);
+  if (!emailOk) return res.status(400).json({ error: "Please verify your email with the 6-digit code before becoming a member." });
+  const phoneOk = false;
   let no;
   do { no = U.memberNo(); } while (await one("SELECT id FROM ysr_nri_wing_members WHERE member_no = ?", no));
   const info = await run(`INSERT INTO ysr_nri_wing_members (member_no, name, email, phone, country, city, profession, district, constituency, chapter, consent_at, email_verified, phone_verified)
@@ -133,15 +129,17 @@ r.post("/login/code", loginLimit, async (req, res) => {
   if (!mailer.otpEnabled()) return res.status(400).json({ error: "Email codes are not set up – log in with your member number." });
   const email = U.email(req.body && req.body.email);
   const m = await one("SELECT name FROM ysr_nri_wing_members WHERE lower(email) = ?", email);
+  let lastLoginCode = null;
   if (m) {
     const code = String(crypto.randomInt(100000, 1000000));
+    lastLoginCode = code;
     await run("UPDATE ysr_nri_wing_login_codes SET used = 1 WHERE lower(email) = ? AND used = 0", email);
     await run("INSERT INTO ysr_nri_wing_login_codes (email, code_hash, expires_at) VALUES (?, ?, now() + interval '10 minutes')", email, codeHash(email, code));
     await mailer.send(email, `Your YSRCP NRI Wing login code: ${code}`,
       `Namaskaram ${m.name.split(/\s+/)[0]},\n\nYour login code is ${code}. It works for 10 minutes.\nIf you did not ask for it, you can ignore this email.`,
       mailer.layout("Your login code", `<p>Your login code is</p><p style="font-size:32px;font-weight:bold;letter-spacing:6px">${code}</p><p>It works for 10 minutes. If you did not ask for it, you can ignore this email.</p>`), "login-code");
   }
-  res.json({ ok: true, message: "If this email is registered, we have sent a 6-digit code." });
+  res.json({ ok: true, message: "If this email is registered, we have sent a 6-digit code.", ...(mailer.testMode() && m ? { testCode: lastLoginCode } : {}) });
 });
 // step 2 – check the code (max 5 tries)
 r.post("/login/verify", loginLimit, async (req, res) => {

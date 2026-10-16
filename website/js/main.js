@@ -1259,11 +1259,10 @@
           <button type="button" class="btn btn-primary btn-block" data-next>Continue →</button>
         </div>
         <div class="stack" data-step="verify" hidden>
-          <p class="verify-intro">🔐 To protect your account, enter the 6-digit codes we sent you.</p>
+          <p class="verify-intro">📧 We sent a 6-digit code to your email. Enter it to confirm your email and become a member.</p>
           <div class="verify-row" data-vrow="email" hidden><label>Email code <small class="muted" data-vto="email"></small><input name="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="code-input"></label>
             <button type="button" class="btn btn-ghost btn-sm" data-vresend="email">Send again</button><span class="v-ok" data-vok="email" hidden>✅ Verified</span></div>
-          <div class="verify-row" data-vrow="phone" hidden><label>SMS code <small class="muted" data-vto="phone"></small><input name="phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="code-input"></label>
-            <button type="button" class="btn btn-ghost btn-sm" data-vresend="phone">Send again</button><span class="v-ok" data-vok="phone" hidden>✅ Verified</span></div>
+          <p class="test-code" data-testcode hidden></p>
           <div class="row2"><button type="button" class="btn btn-ghost" data-vback>← Change details</button><button type="button" class="btn btn-primary" data-vcheck>Verify &amp; continue →</button></div>
         </div>
         <div class="stack" data-step="2" hidden>
@@ -1317,7 +1316,12 @@
     const verified = {};
     const valueOf = (ch) => form.elements[ch].value.trim();
     async function sendCode(ch) {
-      try { const r = await API.post("/verify/send", { channel: ch, value: valueOf(ch) }); toast("📨 " + r.message); return true; }
+      try {
+        const r = await API.post("/verify/send", { channel: ch, value: valueOf(ch) }); toast("📨 " + r.message);
+        // test mode on this computer only: show the code on screen
+        const tc = $("[data-testcode]", form); tc.hidden = !r.testCode; if (r.testCode) tc.innerHTML = `🧪 Test mode (this computer only): your code is <b>${esc(r.testCode)}</b>`;
+        return true;
+      }
       catch (err) { toast(err.message); return false; }
     }
     form.addEventListener("click", async (e) => {
@@ -1331,7 +1335,7 @@
         const bad = $$("input, select", s1).find((i) => !i.disabled && !i.checkValidity());
         if (bad) { bad.reportValidity(); return; }
         // email / phone verification (when the server can send codes)
-        const need = API.online ? ["email", "phone"].filter((ch) => (ch === "email" ? siteConfig.verifyEmail : siteConfig.verifyPhone)) : [];
+        const need = API.online ? ["email"] : []; // email code is always required online
         const todo = need.filter((ch) => !verified[ch] || verified[ch].value !== valueOf(ch));
         if (!todo.length) { showStep("2"); return; }
         const btn = e.target.closest("[data-next]"); btn.disabled = true;
@@ -1346,11 +1350,11 @@
       const rs = e.target.closest("[data-vresend]"); if (rs) sendCode(rs.dataset.vresend);
       if (e.target.closest("[data-vback]")) showStep("1");
       if (e.target.closest("[data-vcheck]")) {
-        const need = ["email", "phone"].filter((ch) => !$(`[data-vrow="${ch}"]`, form).hidden);
+        const need = ["email"];
         for (const ch of need) {
           if (verified[ch] && verified[ch].value === valueOf(ch)) continue;
           const code = form.elements[ch + "Code"].value.replace(/\D/g, "");
-          if (code.length !== 6) { toast(`Please enter the 6-digit ${ch === "email" ? "email" : "SMS"} code`); form.elements[ch + "Code"].focus(); return; }
+          if (code.length !== 6) { toast("Please enter the 6-digit code from your email"); form.elements[ch + "Code"].focus(); return; }
           try {
             const r = await API.post("/verify/check", { channel: ch, value: valueOf(ch), code });
             verified[ch] = { value: valueOf(ch), ticket: r.ticket };
@@ -1374,9 +1378,8 @@
       if (API.online) {
         const btn = $("button:not([type])", form); if (btn) btn.disabled = true;
         try {
-          delete f.emailCode; delete f.phoneCode;
-          const r = await API.post("/members", { ...f, chapter: near ? near.city : "", consent: true,
-            emailTicket: verified.email && verified.email.ticket, phoneTicket: verified.phone && verified.phone.ticket });
+          delete f.emailCode;
+          const r = await API.post("/members", { ...f, chapter: near ? near.city : "", consent: true, emailTicket: verified.email && verified.email.ticket });
           API.setToken(r.token);
           state.user = memberFromApi(r.member);
         } catch (err) { toast(err.message); if (btn) btn.disabled = false; return; }
@@ -1423,13 +1426,16 @@
     openModal(`<h3 id="modalTitle">Welcome back</h3><p class="muted">Enter your email – we will send you a 6-digit login code.</p>
       <form id="codeForm1" class="stack"><label>Email<input name="email" type="email" required autocomplete="email"></label>
       <button class="btn btn-primary btn-block">Send me a code</button></form>
-      <form id="codeForm2" class="stack" hidden><label>6-digit code<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required placeholder="123456" class="code-input"></label>
+      <form id="codeForm2" class="stack" hidden><p class="test-code" data-testcode hidden></p><label>6-digit code<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required placeholder="123456" class="code-input"></label>
       <button class="btn btn-primary btn-block">Login</button><button type="button" class="btn btn-ghost btn-block" data-code-again>Send a new code</button></form>
       <p class="switch-link">New here? <a data-open="register">Register</a></p>`);
     const f1 = $("#codeForm1"), f2 = $("#codeForm2");
     let email = "";
     const send = async () => {
-      try { const r = await API.post("/login/code", { email }); toast("📧 " + r.message); f1.hidden = true; f2.hidden = false; f2.elements.code.focus(); }
+      try {
+        const r = await API.post("/login/code", { email }); toast("📧 " + r.message); f1.hidden = true; f2.hidden = false; f2.elements.code.focus();
+        const tc = $("[data-testcode]", f2); tc.hidden = !r.testCode; if (r.testCode) tc.innerHTML = `🧪 Test mode (this computer only): your code is <b>${esc(r.testCode)}</b>`;
+      }
       catch (err) { toast(err.message); }
     };
     f1.addEventListener("submit", (e) => { e.preventDefault(); email = f1.elements.email.value.trim(); send(); });
