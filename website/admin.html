@@ -91,6 +91,11 @@
     <button data-tab="meet" data-admin>Meet Jagan Sir<span class="badge hidden" id="bMeet"></span></button>
     <button data-tab="proofs" data-admin>Task proofs<span class="badge hidden" id="bProofs"></span></button>
     <button data-tab="volunteers" data-admin>Volunteers</button>
+    <button data-tab="deletions" data-admin>Deletion requests<span class="badge hidden" id="bDel"></span></button>
+    <button data-tab="fame" data-admin>Hall of Fame</button>
+    <button data-tab="assoc" data-admin>Associations<span class="badge hidden" id="bAssoc"></span></button>
+    <button data-tab="jobs" data-admin>Jobs<span class="badge hidden" id="bJobs"></span></button>
+    <button data-tab="news" data-admin>Newsletter</button>
     <button data-tab="teams" data-admin>Country committees</button>
     <button data-tab="members">Members</button>
     <button data-tab="whatsapp">WhatsApp requests<span class="badge hidden" id="bWa"></span></button>
@@ -162,7 +167,7 @@
     try {
       const s = await api("GET", "/summary");
       const set = (id, n) => { const el = $(id); el.textContent = n; el.classList.toggle("hidden", !n); };
-      set("#bTickets", s.ticketsOpen); set("#bMeet", s.meetNew); set("#bWa", s.whatsappNew); set("#bProofs", s.tasksPending || 0);
+      set("#bTickets", s.ticketsOpen); set("#bMeet", s.meetNew); set("#bWa", s.whatsappNew); set("#bProofs", s.tasksPending || 0); set("#bAssoc", s.assocPending || 0); set("#bJobs", s.jobsPending || 0); set("#bDel", s.deletionPending || 0);
     } catch {}
   }
 
@@ -178,7 +183,10 @@
           <div class="card"><span>Waiting for a volunteer</span><b>${s.ticketsUnassigned}</b></div>
           <div class="card alert"><span>Past target date</span><b>${s.ticketsOverdue}</b></div>
           <div class="card"><span>New meeting requests</span><b>${s.meetNew}</b></div>
-          <div class="card"><span>Task proofs to review</span><b>${s.tasksPending}</b></div>` : ""}
+          <div class="card"><span>Task proofs to review</span><b>${s.tasksPending}</b></div>
+          <div class="card alert"><span>Deletion requests</span><b>${s.deletionPending}</b></div>
+          <div class="card"><span>Newsletter subscribers</span><b>${s.subscribers}</b></div>
+          <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${s.email === "on" ? "✅ On" : "⚪ Off (set RESEND_API_KEY)"}</b></div>` : ""}
           <div class="card"><span>New WhatsApp requests</span><b>${s.whatsappNew}</b></div>
         </div>
         ${s.byCountry.length ? `<div class="bar"><h2>Members by country</h2></div>` + table(["Country", "Members"], s.byCountry.map((c) => `<tr><td>${esc(c.country)}</td><td><b>${c.n}</b></td></tr>`)) : ""}`;
@@ -238,13 +246,76 @@
         ["Member", "Task", "Proof", "Sent", "Status", ""],
         proofs.map((p) => `<tr>
           <td><b>${esc(p.name)}</b><br><span class="muted">${esc(p.member_no)} · ${esc(p.city)}, ${esc(p.country)}</span></td>
-          <td>${esc(titles[p.task_id] || p.task_id)}<br><span class="muted">+${points[p.task_id] || 0} pts</span></td>
+          <td>${esc(titles[p.base] || p.base)}<br><span class="muted">+${points[p.base] || 0} pts${p.week ? " · week " + esc(p.week) : ""}</span></td>
           <td class="desc">${p.proof_url ? `<a href="${esc(p.proof_url)}" target="_blank" rel="noopener noreferrer">${esc(p.proof_url.length > 48 ? p.proof_url.slice(0, 46) + "…" : p.proof_url)}</a><br>` : ""}
             ${p.proof_image ? `<img class="proof-img" src="${p.proof_image}" alt="Screenshot" data-zoom>` : ""}
             ${p.proof_note ? `<div>${esc(p.proof_note)}</div>` : ""}</td>
           <td class="muted">${date(p.updated_at)}</td>
           <td>${pill(p.status)}${p.review_note ? `<br><span class="muted">${esc(p.review_note)}</span>` : ""}${p.reviewed_by ? `<br><span class="muted">${esc(p.reviewed_by)}</span>` : ""}</td>
           <td style="white-space:nowrap">${p.status !== "approved" ? `<button class="btn sm" data-review="approved" data-m="${p.member_id}" data-t="${esc(p.task_id)}">✓ Approve</button> ` : ""}${p.status !== "rejected" ? `<button class="btn ghost sm" data-review="rejected" data-m="${p.member_id}" data-t="${esc(p.task_id)}">✕ Reject</button>` : ""}</td></tr>`));
+    },
+    async deletions() {
+      const { requests } = await api("GET", "/deletion-requests");
+      return `<div class="bar"><h2>Account deletion requests</h2></div>
+        <p class="muted" style="margin-top:-6px">Members can't delete their account themselves. <b>Approve</b> deletes the member and their personal data (help-desk tickets stay, without the link to the member). Please handle requests quickly – the DPDP Act / GDPR give members the right to deletion.</p>` + table(
+        ["Member", "Contact", "Reason", "Requested", "Status", ""],
+        requests.map((d) => `<tr><td><b>${esc(d.name)}</b><br><span class="muted">${esc(d.member_no)}${d.city ? " · " + esc(d.city) + ", " + esc(d.country) : ""}</span></td>
+          <td>${esc(d.email || "–")}${d.phone ? `<br><span class="muted">${esc(d.phone)}</span>` : ""}</td>
+          <td class="desc">${esc(d.reason || "–")}</td><td class="muted">${date(d.created_at)}</td>
+          <td>${d.status === "pending" ? '<span class="pill amber">Waiting</span>' : d.status === "approved" ? '<span class="pill">Deleted</span>' : d.status === "rejected" ? '<span class="pill red">Rejected</span>' : '<span class="pill">Cancelled</span>'}${d.review_note ? `<br><span class="muted">${esc(d.review_note)}</span>` : ""}${d.reviewed_by ? `<br><span class="muted">${esc(d.reviewed_by)}</span>` : ""}</td>
+          <td style="white-space:nowrap">${d.status === "pending" ? `<button class="btn sm" data-del-req="approved" data-id="${d.id}" data-name="${esc(d.name)}">✓ Approve &amp; delete</button> <button class="btn ghost sm" data-del-req="rejected" data-id="${d.id}">✕ Reject</button>` : ""}</td></tr>`));
+    },
+    async fame() {
+      const { people } = await api("GET", "/hall-of-fame");
+      return `<div class="bar"><h2>Hall of Fame (${people.length})</h2></div>
+        <p class="muted" style="margin-top:-6px">Real volunteers shown on Achievements → Hall of Fame. Add only people who agreed to be shown.</p>
+        <form class="vol-form" id="fameForm">
+          <label>Name<input name="name" required maxlength="80" placeholder="Ravi Kumar"></label>
+          <label>City<input name="city" maxlength="80" placeholder="Dallas, USA"></label>
+          <label>Title<input name="title" required maxlength="60" list="fameTitles" placeholder="Volunteer of the Month"></label>
+          <datalist id="fameTitles"><option>Volunteer of the Month</option><option>Help Desk Hero</option><option>Voice of the City</option><option>Village Champion</option><option>Rising Star</option></datalist>
+          <label>Badge<input name="badge" maxlength="8" value="🏆" style="width:70px"></label>
+          <label>Why (short)<input name="note" maxlength="300" placeholder="Organised 3 community meets"></label>
+          <label>Photo (optional)<input name="photoFile" type="file" accept="image/*"></label>
+          <button class="btn">+ Add</button>
+        </form>` + table(["Photo", "Name", "Title", "Why", ""],
+        people.map((p) => `<tr><td>${p.photo ? `<img src="${p.photo}" alt="" style="width:44px;height:44px;border-radius:50%;object-fit:cover">` : esc(p.badge || "")}</td>
+          <td><b>${esc(p.name)}</b><br><span class="muted">${esc(p.city || "")}</span></td><td>${esc(p.badge || "")} ${esc(p.title)}</td><td class="desc">${esc(p.note || "")}</td>
+          <td><button class="btn ghost sm" data-del-fame="${p.id}" data-name="${esc(p.name)}">Remove</button></td></tr>`));
+    },
+    async assoc() {
+      const { associations } = await api("GET", "/associations");
+      return `<div class="bar"><h2>Telugu associations (${associations.length})</h2></div>
+        <p class="muted" style="margin-top:-6px">Suggestions from visitors. Only <b>approved</b> ones appear on My City → Telugu associations.</p>` + table(
+        ["Association", "Where", "Contact", "About", "Sent by", "Status"],
+        associations.map((a) => `<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.city)}, ${esc(a.country)}</td>
+          <td>${a.website ? `<a href="${esc(a.website)}" target="_blank" rel="noopener noreferrer">website</a><br>` : ""}${esc(a.email || "")}</td>
+          <td class="desc">${esc(a.description || "")}</td><td class="muted">${esc(a.submitted_by || "")}<br>${date(a.created_at)}</td>
+          <td>${select(a.status, ["pending", "approved", "rejected"], `data-assoc="${a.id}"`)}</td></tr>`));
+    },
+    async jobs() {
+      const { jobs } = await api("GET", "/jobs");
+      return `<div class="bar"><h2>Jobs &amp; referrals (${jobs.length})</h2></div>
+        <p class="muted" style="margin-top:-6px">Posted by members. Approve only genuine posts – never posts asking for money. Approved posts show for 60 days.</p>` + table(
+        ["Post", "Where", "Details", "Contact", "Posted by", "Status"],
+        jobs.map((j) => `<tr><td><b>${esc(j.title)}</b><br><span class="muted">${esc(j.kind)}${j.company ? " · " + esc(j.company) : ""}</span></td>
+          <td>${esc([j.city, j.country].filter(Boolean).join(", "))}</td>
+          <td class="desc">${esc(j.description)}${j.link ? `<br><a href="${esc(j.link)}" target="_blank" rel="noopener noreferrer">link</a>` : ""}</td>
+          <td>${esc(j.contact)}</td><td class="muted">${esc(j.member_name || "")}<br>${esc(j.member_no || "")}<br>${date(j.created_at)}</td>
+          <td>${select(j.status, ["pending", "approved", "rejected", "closed"], `data-job="${j.id}"`)}</td></tr>`));
+    },
+    async news() {
+      const n = await api("GET", "/newsletter");
+      return `<div class="bar"><h2>Monthly newsletter</h2>${exportBtn("newsletter")}</div>
+        <div class="cards"><div class="card"><span>Active subscribers</span><b>${n.active}</b></div><div class="card"><span>All sign-ups</span><b>${n.total}</b></div>
+        <div class="card"><span>Email sending</span><b style="font-size:1.1rem">${n.emailOn ? "✅ On" : "⚪ Off"}</b></div></div>
+        ${n.emailOn ? "" : `<p class="muted">Email sending is off. Add <code>RESEND_API_KEY</code> and <code>MAIL_FROM</code> in Vercel to send. On this computer emails are only printed in the server window.</p>`}
+        <form class="links-form" id="newsSendForm"><b>Write this month's newsletter</b>
+          <label>Subject<input name="subject" required maxlength="150" placeholder="YSRCP NRI Wing – October update"></label>
+          <label>Message<textarea name="body" required rows="8" maxlength="8000" placeholder="Namaskaram! This month…"></textarea></label>
+          <div><button class="btn sm">Send to ${n.active} subscriber(s)</button></div></form>
+        <div class="bar"><h2 style="font-size:1.05rem">Recent emails</h2></div>` + table(["Sent", "Type", "To", "Subject", "Result"],
+        n.log.map((l) => `<tr><td class="muted">${date(l.created_at)}</td><td>${esc(l.kind)}</td><td>${esc(l.to_email)}</td><td>${esc(l.subject)}</td><td>${esc(l.status)}</td></tr>`));
     },
     async volunteers() {
       const { volunteers } = await api("GET", "/volunteers");
@@ -322,6 +393,8 @@
         await api("PATCH", "/tickets/" + t.dataset.ticket, { status: t.value, resolution }); toast("Ticket updated"); show("tickets");
       }
       if (t.dataset.notes) { await api("PATCH", "/tickets/" + t.dataset.notes, { notes: t.value }); toast("Note saved"); }
+      if (t.dataset.assoc) { await api("PATCH", "/associations/" + t.dataset.assoc, { status: t.value }); toast("Association " + t.value); refreshBadges(); }
+      if (t.dataset.job) { await api("PATCH", "/jobs/" + t.dataset.job, { status: t.value }); toast("Post " + t.value); refreshBadges(); }
       if (t.dataset.vol) { await api("PATCH", "/volunteers/" + t.dataset.vol, { active: t.checked }); toast(t.checked ? "Volunteer active" : "Volunteer paused"); show("volunteers"); }
       if (t.dataset.meet) { await api("PATCH", "/meet-requests/" + t.dataset.meet, { status: t.value }); toast("Request updated"); refreshBadges(); }
       if (t.dataset.wa) { await api("PATCH", "/whatsapp-requests/" + t.dataset.wa, { status: t.value }); toast("Request updated"); refreshBadges(); }
@@ -362,6 +435,33 @@
     try { await api("DELETE", "/country-teams/" + d.dataset.delLeader); toast("Removed"); show("teams"); } catch (err) { toast(err.message); }
   });
   document.addEventListener("submit", async (e) => {
+    if (e.target.id === "fameForm") {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(e.target)); const photo = await squarePhoto(e.target.elements.photoFile.files[0]); delete f.photoFile;
+      try { await api("POST", "/hall-of-fame", { ...f, photo }); toast(f.name + " added to the Hall of Fame"); show("fame"); } catch (err) { toast(err.message); }
+    }
+    if (e.target.id === "newsSendForm") {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(e.target));
+      if (!confirm("Send this newsletter to all active subscribers now?")) return;
+      const btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "Sending…";
+      try { const r = await api("POST", "/newsletter/send", f); toast(`Sent to ${r.sent} of ${r.total}`); show("news"); } catch (err) { toast(err.message); btn.disabled = false; }
+    }
+  });
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-del-req]"); if (!b) return;
+    let note = null;
+    if (b.dataset.delReq === "approved") { if (!confirm(`Delete ${b.dataset.name}'s account and personal data? This cannot be undone.`)) return; }
+    else { note = prompt("Why is the request not approved? (the member will see this)"); if (note === null) return; }
+    try { await api("PATCH", "/deletion-requests/" + b.dataset.id, { status: b.dataset.delReq, note }); toast(b.dataset.delReq === "approved" ? "Account deleted" : "Request rejected"); show("deletions"); }
+    catch (err) { toast(err.message); }
+  });
+  document.addEventListener("click", async (e) => {
+    const d = e.target.closest("[data-del-fame]"); if (!d) return;
+    if (!confirm(`Remove ${d.dataset.name} from the Hall of Fame?`)) return;
+    try { await api("DELETE", "/hall-of-fame/" + d.dataset.delFame); toast("Removed"); show("fame"); } catch (err) { toast(err.message); }
+  });
+  document.addEventListener("submit", async (e) => {
     if (e.target.id !== "taskLinksForm") return;
     e.preventDefault();
     try { await api("PUT", "/task-links", Object.fromEntries(new FormData(e.target))); toast("Links saved – they show on the Volunteer page"); } catch (err) { toast(err.message); }
@@ -379,7 +479,7 @@
       if (note === null) return;
     }
     try {
-      await api("PATCH", `/task-proofs/${rv.dataset.m}/${rv.dataset.t}`, { status: rv.dataset.review, note });
+      await api("PATCH", `/task-proofs/${rv.dataset.m}/${encodeURIComponent(rv.dataset.t)}`, { status: rv.dataset.review, note });
       toast(rv.dataset.review === "approved" ? "Approved – points added" : "Marked as not approved");
       show("proofs");
     } catch (err) { toast(err.message); }

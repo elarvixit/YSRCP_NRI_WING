@@ -20,7 +20,7 @@ const SHORT = { US: "USA", GB: "United Kingdom", AE: "UAE" }; // names used acro
 
 const out = {};
 for (const [code, c] of Object.entries(countries)) {
-  if (code === "IN") continue; // NRI = living outside India
+  if (code === "IN" || code === "PK") continue; // NRI = living outside India; Pakistan not listed
   const names = cityMapping.filter((x) => x.iso2 === code).sort((a, b) => b.pop - a.pop).map((x) => x.city);
   const first = PRIORITY[code] || [];
   const rest = [...new Set(names)].filter((n) => !first.includes(n)).sort((a, b) => a.localeCompare(b));

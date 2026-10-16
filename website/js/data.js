@@ -121,7 +121,7 @@ const HERO_SLIDES = [
     title: { en: "Connecting NRIs with <em>Y.S. Jagan Mohan Reddy</em>", te: "ఎన్ఆర్ఐలను <em>వై.ఎస్. జగన్ మోహన్ రెడ్డి</em>‌తో కలుపుతున్నాం" },
     text: { en: "The YSRCP NRI Wing brings Telugu people living abroad together – to stay connected with home, help families in Andhra Pradesh and support the party's work for a better state.",
             te: "విదేశాల్లో ఉన్న తెలుగు వారిని ఒక్కటి చేసే వేదిక వైఎస్ఆర్‌సీపీ ఎన్ఆర్ఐ విభాగం – ఇంటితో అనుబంధం, ఏపీలోని కుటుంబాలకు సహాయం, మెరుగైన రాష్ట్రం కోసం పార్టీకి మద్దతు." },
-    points: { en: ["48 cities in 30+ countries", "24/7 help for NRIs & families", "Free membership & digital card"], te: ["30+ దేశాల్లో 48 చాప్టర్లు", "24/7 సహాయం", "ఉచిత సభ్యత్వం & డిజిటల్ కార్డు"] },
+    points: { en: ["48 cities in 30+ countries", "24/7 help for NRIs & families", "Free membership & digital card"], te: ["30+ దేశాల్లో 48 నగరాలు", "24/7 సహాయం", "ఉచిత సభ్యత్వం & డిజిటల్ కార్డు"] },
     theme: "a" },
   {
     title: { en: "Need help back home? <em>We are here.</em>", te: "ఇంటి వద్ద సహాయం కావాలా? <em>మేమున్నాం.</em>" },
@@ -201,7 +201,7 @@ const JOURNEY = [
 /* ---------- "How can we help you?" quick actions (shown in English and Telugu together) ---------- */
 const QUICK = [
   { icon: "🛟", en: "I need help back home", te: "ఇంటి వద్ద సహాయం కావాలి", sub: "Family, property, documents, emergency", go: "#helpdesk", accent: "red" },
-  { icon: "🌍", en: "Find my city", te: "నా చాప్టర్ కనుగొనండి", sub: "Your city's YSRCP NRI team & WhatsApp group", go: "#chapters", id: "qChapter" },
+  { icon: "🌍", en: "Find my city", te: "నా నగరం కనుగొనండి", sub: "Your city's YSRCP NRI team & WhatsApp group", go: "#chapters", id: "qChapter" },
   { icon: "🪪", en: "Get my member ID card", te: "నా ఐడీ కార్డు పొందండి", sub: "Free digital card with QR code", action: "idcard" },
   { icon: "🤝", en: "Meet Jagan sir", te: "జగన్ గారిని కలవండి", sub: "Request a meeting – in person or online", go: "#meet", accent: "gold" },
   { icon: "🕌", en: "Gulf worker support", te: "గల్ఫ్ కార్మికుల సహాయం", sub: "Emergency contacts, wages, repatriation", action: "svc:gulf" },
@@ -392,13 +392,7 @@ const GOV_ACH = [ // Party-reported governance milestones (2019–24). Verify be
   { icon: "🌾", n: 10000, suffix: "+", title: "Rythu Bharosa Kendras", bg: PILLAR_IMG + "STS_1159.jpeg", text: "One-stop farmer centres in every village." }
 ];
 
-const HALL_OF_FAME = [ // SAMPLE
-  { name: "Ravi K.", city: "Dallas, USA", badge: "🏆", title: "Volunteer of the Month", note: "Organised 3 community meets and onboarded 42 members." },
-  { name: "Fatima S.", city: "Doha, Qatar", badge: "🛟", title: "Help Desk Hero", note: "Helped 18 Gulf workers with documents and repatriation." },
-  { name: "Lakshmi P.", city: "London, UK", badge: "🎤", title: "Voice of the Chapter", note: "Hosted the most-watched Live with Leaders session." },
-  { name: "Kiran T.", city: "Sydney, Australia", badge: "🏡", title: "Village Champion", note: "Raised support for a library in his native village." },
-  { name: "Swathi N.", city: "Toronto, Canada", badge: "🌱", title: "Rising Star", note: "Completed 25 volunteer tasks in her first 2 months." }
-];
+// Hall of Fame: real volunteers are added in the admin panel (no sample names)
 
 const BADGES = [
   { id: "b1", icon: "🌱", name: "First Step", need: 10 },
@@ -450,17 +444,17 @@ const DISTRICTS = ["Alluri Sitharama Raju","Anakapalli","Anantapur","Annamayya",
 const I18N = {
   en: {},
   te: {
+    statChapters: "నగరాలు", chapterTitle: "మీ దేశం లేదా నగరాన్ని కనుగొనండి", assocTitle: "మీ దగ్గరలోని తెలుగు సంఘాలు", assocText: "దేశం, నగరం వారీగా తెలుగు సంఘాలు, సాంస్కృతిక సమూహాలు. ఏదైనా లేదా? మాకు చెప్పండి.", voterTitle: "విదేశాల నుండి ఓటరుగా నమోదు (ఫారం 6A)", voterText: "విదేశాల్లో ఉన్న భారత పౌరులు (వేరే దేశ పౌరసత్వం తీసుకోనివారు) ఏపీలోని తమ నియోజకవర్గ ఓటర్ల జాబితాలో చేరవచ్చు.", emerTitle: "అత్యవసర సంప్రదింపుల జాబితా", emerText: "ఎన్ఆర్ఐలు, వారి కుటుంబాల కోసం అధికారిక హెల్ప్‌లైన్లు. ఎన్ఆర్ఐ విభాగం ప్రభుత్వ కార్యాలయం కాదు – అధికారిక సహాయం కోసం ఈ సేవలను నేరుగా సంప్రదించండి.", jobsTitle: "ఉద్యోగాలు & నైపుణ్యాలు", jobsText: "ఎన్ఆర్ఐ సభ్యులు పంచుకునే ఉద్యోగాలు, రిఫరల్స్, మార్గదర్శనం, నైపుణ్య శిక్షణ, స్వదేశానికి తిరిగి వచ్చేవారికి సహాయం.", footerNews: "నెలవారీ వార్తాలేఖ",
     brandSub: "ప్రపంచ ఐక్యత, స్థానిక ప్రభావం",
-    navHome: "హోమ్", navAbout: "మా గురించి", navChapter: "నా చాప్టర్", navEvents: "ఈవెంట్స్",
+    navHome: "హోమ్", navAbout: "మా గురించి", navChapter: "నా నగరం", navEvents: "ఈవెంట్స్",
     navHelp: "హెల్ప్ డెస్క్", navVolunteer: "వాలంటీర్", navAch: "విజయాలు", navServices: "సేవలు",
     navMark: "జగనన్న మార్క్", navMeet: "జగన్ గారిని కలవండి", navGallery: "గ్యాలరీ", login: "లాగిన్", register: "నమోదు",
-    heroCta1: "సభ్యునిగా చేరండి", heroCta2: "నా చాప్టర్ కనుగొనండి",
-    statMembers: "సభ్యులు", statCountries: "దేశాలు", statChapters: "చాప్టర్లు",
-    journeyKicker: "మా రాజకీయ ప్రయాణం", journeyTitle: "ప్రజల నమ్మకం వైపు మార్గం",
+    heroCta1: "సభ్యునిగా చేరండి", heroCta2: "నా నగరం కనుగొనండి",
+    statMembers: "సభ్యులు", statCountries: "దేశాలు", journeyKicker: "మా రాజకీయ ప్రయాణం", journeyTitle: "ప్రజల నమ్మకం వైపు మార్గం",
     whyKicker: "మా దార్శనికత", whyTitle: "ఎందుకు చేరాలి?", whyText: "మీ మాతృభూమితో మీ అనుబంధం అమూల్యమైనది. కలిసి అనుసంధానం అవుదాం, తోడ్పడదాం, ఎదుగుదాం.",
     servicesKicker: "మా సేవలు", servicesTitle: "ఎన్ఆర్ఐల కోసం సమగ్ర సహాయం", learnMore: "మరింత తెలుసుకోండి",
     pillarsKicker: "దార్శనికత & వ్యూహం", pillarsTitle: "ప్రగతికి 12 స్తంభాలు", pillarsText: "బలమైన, అందరినీ కలుపుకొనే ఆంధ్రప్రదేశ్ కోసం పన్నెండు పునాదులు.",
-    chapterKicker: "కొత్తది", chapterTitle: "మీ చాప్టర్‌ను కనుగొనండి", chapterText: "మీ దేశం, నగరం ఎంచుకోండి – కోఆర్డినేటర్, వాట్సాప్ గ్రూప్, స్థానిక ఈవెంట్స్ ఒకే క్లిక్‌లో.",
+    chapterKicker: "కొత్తది", chapterText: "మీ దేశం, నగరం ఎంచుకోండి – కోఆర్డినేటర్, వాట్సాప్ గ్రూప్, స్థానిక ఈవెంట్స్ ఒకే క్లిక్‌లో.",
     searchCity: "నగరం లేదా దేశం వెతకండి…", allRegions: "అన్ని ప్రాంతాలు",
     eventsKicker: "ఈవెంట్స్ క్యాలెండర్", eventsTitle: "రాబోయే ఈవెంట్స్ – మీ సమయంలో", eventsText: "అన్ని సమయాలు మీ టైమ్ జోన్‌లో చూపబడతాయి.",
     rsvp: "హాజరవుతాను", going: "✓ హాజరవుతున్నారు",
@@ -526,3 +520,51 @@ const PROFESSIONS = {
   "Professional services": ["Lawyer / legal", "Journalist / media", "Government / public sector", "Airline / aviation staff", "Seafarer / merchant navy", "Artist / designer", "Social worker / NGO"],
   "Other": ["Homemaker", "Retired", "Looking for work", "Self-employed"]
 };
+
+/* ---------- Form 6A: overseas voter registration (check voters.eci.gov.in for the latest rules) ---------- */
+const VOTER_STEPS = [
+  { t: "Check you can apply", d: "You are an Indian citizen living abroad for work, study or other reasons, you have NOT taken another country's citizenship, and you are 18 or older." },
+  { t: "Open the ECI Voters' Portal", d: "Go to voters.eci.gov.in (or the Voter Helpline app) and sign up with your mobile number or email." },
+  { t: "Choose Form 6A", d: "Select “Form 6A – New registration for overseas electors”." },
+  { t: "Fill in your details", d: "Use the address in AP that is printed in your passport – you are added to the voter list of that constituency." },
+  { t: "Upload documents", d: "A recent passport-size photo and self-attested copies of your passport pages (photo + address pages) and the page with your valid visa." },
+  { t: "Submit & track", d: "Note the reference number. A Booth Level Officer may visit your AP address to verify. Track the status on the portal." }
+];
+const VOTER_DOCS = ["Recent passport-size photo", "Indian passport – photo & personal details page", "Passport page with your address in AP", "Page with your valid visa / residence permit", "Your mobile number or email for the portal"];
+
+/* ---------- emergency directory (official services – links only) ---------- */
+const EMERGENCY = [
+  { group: "Andhra Pradesh Government", icon: "🏛️", items: [
+    { name: "APNRTS 24×7 Helpline", note: "AP Non-Resident Telugu Society – help for AP NRIs & families", tel: "+918632340678", show: "+91 863 234 0678" },
+    { name: "APNRTS WhatsApp", note: "Chat support", wa: "918500027678", show: "+91 85000 27678" },
+    { name: "APNRTS website", note: "Services, insurance help, returnee support", url: "https://apnrts.ap.gov.in", show: "apnrts.ap.gov.in" }
+  ] },
+  { group: "Government of India", icon: "🇮🇳", items: [
+    { name: "MADAD – consular help", note: "Register a complaint with Indian missions abroad", url: "https://madad.gov.in", show: "madad.gov.in" },
+    { name: "Pravasi Bharatiya Sahayata Kendra", note: "MEA helpline for overseas Indians (toll-free from India)", tel: "18001113090", show: "1800 11 3090" },
+    { name: "Indian embassies & consulates", note: "Find the mission in your country", url: "https://www.mea.gov.in/indian-missions-abroad-new.htm", show: "mea.gov.in" }
+  ] },
+  { group: "Workers in Gulf & ECR countries", icon: "🛂", items: [
+    { name: "e-Migrate", note: "Emigration clearance, registered recruiting agents, complaints", url: "https://emigrate.gov.in", show: "emigrate.gov.in" },
+    { name: "Pravasi Bharatiya Bima Yojana (PBBY)", note: "Compulsory insurance for ECR workers – check your policy on e-Migrate", url: "https://emigrate.gov.in", show: "emigrate.gov.in" }
+  ] },
+  { group: "If someone passes away abroad", icon: "🕊️", items: [
+    { name: "Indian Embassy / Consulate", note: "Helps with documents and bringing the body home; welfare funds may help families in need", url: "https://www.mea.gov.in/indian-missions-abroad-new.htm", show: "Find your mission" },
+    { name: "APNRTS", note: "Ask about help from the airport to the native place in AP", tel: "+918632340678", show: "+91 863 234 0678" },
+    { name: "Raise an urgent Help Desk request", note: "Our volunteers will help the family with the steps", help: true, show: "Open Help Desk" }
+  ] }
+];
+const LOCAL_EMERGENCY = [["USA / Canada", "911"], ["UK", "999"], ["Ireland / Germany / Netherlands", "112"], ["UAE", "999 · ambulance 998"], ["Saudi Arabia", "911"], ["Qatar", "999"], ["Kuwait", "112"], ["Oman", "9999"], ["Bahrain", "999"], ["Singapore", "999 · ambulance 995"], ["Malaysia", "999"], ["Australia", "000"], ["New Zealand", "111"], ["Japan", "110 · ambulance 119"], ["South Africa", "10111 · 112 (mobile)"], ["India", "112"]];
+
+/* ---------- jobs & skills corner: useful official links ---------- */
+const SKILL_LINKS = [
+  { icon: "🎓", name: "Skill India Digital", note: "Free courses and certificates", url: "https://www.skillindiadigital.gov.in" },
+  { icon: "🏗️", name: "APSSDC", note: "AP State Skill Development Corporation – training & placements", url: "https://www.apssdc.in" },
+  { icon: "🛂", name: "e-Migrate", note: "Safe migration, registered agents, job demands abroad", url: "https://emigrate.gov.in" },
+  { icon: "🏠", name: "APNRTS – returnee support", note: "Help for NRIs coming back to AP", url: "https://apnrts.ap.gov.in" },
+  { icon: "🌍", name: "MADAD", note: "Problems with an employer abroad – contact Indian missions", url: "https://madad.gov.in" }
+];
+const JOB_KINDS = { job: "💼 Job opening", referral: "🤝 Referral", mentoring: "🧭 Mentoring", returnee: "🏠 Returning home" };
+
+/* ---------- privacy: who to contact (fill in the real person before launch) ---------- */
+const GRIEVANCE = { name: "Grievance Officer, YSRCP NRI Wing (to be appointed)", email: "grievance@ysrcpnriwing.org" };

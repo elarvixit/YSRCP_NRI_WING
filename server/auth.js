@@ -42,6 +42,10 @@ function readToken(token) {
   } catch { return null; }
 }
 
+// proof that an email / phone was verified during registration (valid 30 minutes)
+const verifyTicket = (channel, target) => createToken({ role: "verify", ch: channel, target }, 30 * 60);
+const readVerifyTicket = (token, channel, target) => { const t = readToken(token); return !!(t && t.role === "verify" && t.ch === channel && t.target === target); };
+
 const memberToken = (memberId) => createToken({ sub: memberId, role: "member" }, MEMBER_DAYS * 86400);
 const adminToken = (admin) => createToken({ sub: admin.id, role: admin.role, chapter: admin.chapter || null, name: admin.username }, ADMIN_HOURS * 3600);
 
@@ -82,4 +86,4 @@ function requireFullAdmin(req, res, next) {
   next();
 }
 
-module.exports = { memberToken, adminToken, readToken, hashPassword, checkPassword, optionalMember, requireMember, requireAdmin, requireFullAdmin };
+module.exports = { verifyTicket, readVerifyTicket, memberToken, adminToken, readToken, hashPassword, checkPassword, optionalMember, requireMember, requireAdmin, requireFullAdmin };

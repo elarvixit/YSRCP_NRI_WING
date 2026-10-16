@@ -8,7 +8,9 @@ const DATA_DIR = path.join(__dirname, "data");
 // every table is named ysr_nri_wing_<table>, so it can share a Supabase project with other apps
 const TABLE_PREFIX = "ysr_nri_wing_";
 const TABLES = ["members", "admins", "volunteers", "tickets", "ticket_events", "meet_requests", "whatsapp_requests",
-  "rsvps", "task_done", "questions", "country_leaders", "social_photos", "app_state"];
+  "rsvps", "task_done", "questions", "country_leaders", "social_photos", "app_state",
+  "login_codes", "email_log", "hall_of_fame", "associations", "jobs", "newsletter",
+  "verify_codes", "deletion_requests"];
 const ON_VERCEL = !!process.env.VERCEL;
 
 // timestamps → "YYYY-MM-DD HH:MM:SS" in UTC (the format the website and admin panel expect)
@@ -187,6 +189,120 @@ CREATE TABLE IF NOT EXISTS ysr_nri_wing_app_state (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- member settings (privacy + notifications)
+ALTER TABLE ysr_nri_wing_members ADD COLUMN IF NOT EXISTS show_photo   INTEGER NOT NULL DEFAULT 0;  -- photo on the public QR verify page only with consent
+ALTER TABLE ysr_nri_wing_members ADD COLUMN IF NOT EXISTS notify_email INTEGER NOT NULL DEFAULT 1;  -- Help Desk / task emails
+ALTER TABLE ysr_nri_wing_members ADD COLUMN IF NOT EXISTS lang         TEXT;
+
+-- email login codes (only a hash is stored)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_login_codes (
+  id         SERIAL PRIMARY KEY,
+  email      TEXT NOT NULL,
+  code_hash  TEXT NOT NULL,
+  attempts   INTEGER NOT NULL DEFAULT 0,
+  used       INTEGER NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_login_codes_email ON ysr_nri_wing_login_codes (lower(email));
+
+-- emails sent (no message body)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_email_log (
+  id         SERIAL PRIMARY KEY,
+  kind       TEXT,
+  to_email   TEXT,
+  subject    TEXT,
+  status     TEXT,
+  error      TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Hall of Fame (real volunteers, added by admins)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_hall_of_fame (
+  id         SERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  city       TEXT,
+  title      TEXT NOT NULL,
+  badge      TEXT,
+  note       TEXT,
+  photo      TEXT,
+  sort       INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Telugu associations directory (suggested by anyone, approved by admins)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_associations (
+  id           SERIAL PRIMARY KEY,
+  name         TEXT NOT NULL,
+  country      TEXT NOT NULL,
+  city         TEXT NOT NULL,
+  website      TEXT,
+  email        TEXT,
+  description  TEXT,
+  status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  submitted_by TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Jobs & skills corner (posted by members, approved by admins)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_jobs (
+  id          SERIAL PRIMARY KEY,
+  member_id   INTEGER REFERENCES ysr_nri_wing_members(id) ON DELETE SET NULL,
+  kind        TEXT NOT NULL CHECK (kind IN ('job', 'referral', 'mentoring', 'returnee')),
+  title       TEXT NOT NULL,
+  company     TEXT,
+  country     TEXT NOT NULL,
+  city        TEXT,
+  description TEXT NOT NULL,
+  link        TEXT,
+  contact     TEXT NOT NULL,
+  status      TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'closed')),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at  TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '60 days')
+);
+
+-- monthly newsletter
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_newsletter (
+  id         SERIAL PRIMARY KEY,
+  email      TEXT NOT NULL,
+  name       TEXT,
+  country    TEXT,
+  token      TEXT NOT NULL,
+  status     TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'unsubscribed')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS ysr_nri_wing_newsletter_email_key ON ysr_nri_wing_newsletter (lower(email));
+
+-- registration: email / phone verification codes (only a hash is stored)
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_verify_codes (
+  id         SERIAL PRIMARY KEY,
+  channel    TEXT NOT NULL CHECK (channel IN ('email', 'phone')),
+  target     TEXT NOT NULL,
+  code_hash  TEXT NOT NULL,
+  attempts   INTEGER NOT NULL DEFAULT 0,
+  used       INTEGER NOT NULL DEFAULT 0,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ysr_nri_wing_idx_verify_codes_target ON ysr_nri_wing_verify_codes (channel, target);
+ALTER TABLE ysr_nri_wing_members ADD COLUMN IF NOT EXISTS email_verified INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE ysr_nri_wing_members ADD COLUMN IF NOT EXISTS phone_verified INTEGER NOT NULL DEFAULT 0;
+
+-- members ask to delete their account; an admin approves
+CREATE TABLE IF NOT EXISTS ysr_nri_wing_deletion_requests (
+  id          SERIAL PRIMARY KEY,
+  member_id   INTEGER REFERENCES ysr_nri_wing_members(id) ON DELETE SET NULL,
+  member_no   TEXT NOT NULL,
+  name        TEXT NOT NULL,
+  email       TEXT,
+  reason      TEXT,
+  status      TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
+  review_note TEXT,
+  reviewed_by TEXT,
+  reviewed_at TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Supabase: block direct access through the public API (anon / authenticated keys).
 -- The website's server connects as the database owner, which is not affected.
 ALTER TABLE ysr_nri_wing_members ENABLE ROW LEVEL SECURITY;
@@ -202,6 +318,14 @@ ALTER TABLE ysr_nri_wing_questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ysr_nri_wing_country_leaders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ysr_nri_wing_social_photos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ysr_nri_wing_app_state ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_login_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_email_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_hall_of_fame ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_associations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_newsletter ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_verify_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ysr_nri_wing_deletion_requests ENABLE ROW LEVEL SECURITY;
 `;
 
 /* ---------- driver: pg (Supabase) or PGlite (local) ---------- */

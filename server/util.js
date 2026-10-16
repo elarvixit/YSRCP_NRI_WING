@@ -3,6 +3,17 @@ const crypto = require("crypto");
 
 // Keep in sync with TASKS and EVENTS in website/js/data.js
 const TASK_POINTS = { t1: 10, t2: 40, t3: 30, t4: 25, t5: 20, t6: 35 };
+// volunteer tasks repeat every week: an entry is stored as "<task>@<ISO week>", e.g. "t1@2026-W42"
+function isoWeek(d = new Date()) {
+  const t = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7);
+  return `${y}-W${String(w).padStart(2, "0")}`;
+}
+const taskKey = (id, week = isoWeek()) => `${id}@${week}`;
+const baseTask = (key) => String(key).split("@")[0];
 const TASK_TITLES = {
   t1: "Share this week's official post", t2: "Call five people in your home constituency", t3: "Attend a city meet",
   t4: "Bring a new member", t5: "Submit a question for Live with Leaders", t6: "Update your village project"
@@ -10,7 +21,7 @@ const TASK_TITLES = {
 const EVENT_IDS = ["ev1", "ev2", "ev3", "ev4", "ev5", "ev6", "ev7", "ev8"];
 const REGISTER_POINTS = 10;
 
-const TICKET_CATEGORIES = ["Family welfare", "Property / land", "Documents & certificates", "Medical emergency", "Emergency abroad (24/7)", "Gulf worker – repatriation", "Other"];
+const TICKET_CATEGORIES = ["Family welfare", "Property / land", "Documents & certificates", "Medical emergency", "Emergency abroad (24/7)", "Gulf worker – repatriation", "Voter registration (Form 6A)", "Other"];
 const MEET_TYPES = ["City / group meeting", "Individual meeting", "Family visit", "Online (video) meeting"];
 const MEET_PLACES = ["Tadepalli party office", "Online", "During a visit to my region"];
 
@@ -71,4 +82,4 @@ function rateLimit(key, max, windowMs) {
 }
 setInterval(() => { const now = Date.now(); for (const [k, v] of hits) if (!v.some((t) => now - t < 3600e3)) hits.delete(k); }, 600e3).unref();
 
-module.exports = { COMMITTEE_ROLES, TASK_POINTS, TASK_TITLES, EVENT_IDS, REGISTER_POINTS, TICKET_CATEGORIES, MEET_TYPES, MEET_PLACES, BadRequest, text, email, phone, oneOf, id, mustConsent, memberNo, ticketNo, meetRef, rateLimit };
+module.exports = { isoWeek, taskKey, baseTask, COMMITTEE_ROLES, TASK_POINTS, TASK_TITLES, EVENT_IDS, REGISTER_POINTS, TICKET_CATEGORIES, MEET_TYPES, MEET_PLACES, BadRequest, text, email, phone, oneOf, id, mustConsent, memberNo, ticketNo, meetRef, rateLimit };

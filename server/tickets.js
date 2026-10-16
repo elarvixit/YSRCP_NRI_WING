@@ -2,6 +2,19 @@
 // Raise (Received) → Assign (to a district volunteer) → In progress → Resolve.
 const crypto = require("crypto");
 const { one, all, run } = require("./db");
+const mailer = require("./mailer");
+
+// email the member (if they raised it while logged in and allow emails)
+async function notifyMember(t, headline, detail) {
+  if (!t.member_id) return;
+  const m = await one("SELECT name, email, notify_email FROM ysr_nri_wing_members WHERE id = ?", t.member_id);
+  if (!m || !m.notify_email) return;
+  const site = (process.env.SITE_URL || "").replace(/\/+$/, "");
+  const first = m.name.split(/\s+/)[0];
+  await mailer.send(m.email, `Help request #${t.ticket_no}: ${headline}`,
+    `Namaskaram ${first},\n\n${headline}\n${detail || ""}\n\nTrack it: ${site}/#helpdesk\n\nYSRCP NRI Wing Help Desk`,
+    mailer.layout(`#${t.ticket_no}: ${headline}`, `<p>Namaskaram ${mailer.escHtml(first)},</p><p>${mailer.escHtml(detail || "")}</p>${site ? `<p><a href="${site}/#helpdesk">Track your request</a></p>` : ""}`), "ticket");
+}
 
 const STATUSES = ["Received", "Assigned", "In progress", "Resolved"];
 const TARGET_DAYS = 7;          // normal requests
@@ -21,6 +34,11 @@ async function setStatus(ticket, status, { note, by, resolution } = {}) {
   if (status === "Resolved") await run("UPDATE ysr_nri_wing_tickets SET resolved_at = now(), resolution = COALESCE(?, resolution) WHERE id = ?", resolution || null, ticket.id);
   else await run("UPDATE ysr_nri_wing_tickets SET resolved_at = NULL WHERE id = ?", ticket.id);
   if (status !== ticket.status || note) await addEvent(ticket.id, status, note, by);
+  if (status !== ticket.status) {
+    const msg = { "In progress": "A volunteer is working on your request.", Resolved: "Your request is resolved." + (resolution ? " What was done: " + resolution : ""),
+      Assigned: "A volunteer from your district has been assigned.", Received: "Your request is open again." }[status];
+    notifyMember(ticket, "status " + status, msg).catch(() => {});
+  }
   return one("SELECT * FROM ysr_nri_wing_tickets WHERE id = ?", ticket.id);
 }
 
@@ -30,6 +48,7 @@ async function assign(ticket, volunteer, by) {
                status = CASE WHEN status = 'Received' THEN 'Assigned' ELSE status END,
                assigned_at = COALESCE(assigned_at, now()) WHERE id = ?`, volunteer.id, token, ticket.id);
   await addEvent(ticket.id, ticket.status === "Received" ? "Assigned" : ticket.status, `Assigned to ${volunteer.name} (${volunteer.district})`, by);
+  notifyMember(ticket, "a volunteer is assigned", `${volunteer.name.split(/\s+/)[0]} from ${volunteer.district} will help you.`).catch(() => {});
   return one("SELECT * FROM ysr_nri_wing_tickets WHERE id = ?", ticket.id);
 }
 

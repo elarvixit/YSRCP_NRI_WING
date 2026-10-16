@@ -6,7 +6,28 @@
   <title>YSRCP NRI Wing | Global Unity, Local Impact</title>
   <meta name="description" content="YSRCP Global NRI Wing – find your chapter, get help back home, volunteer, join events and celebrate our achievements.">
   <meta name="theme-color" content="#0b3a8c">
-  <link rel="icon" href="https://www.ysrcpnriwing.org/assets/nrilogo-CnaBSrOt.png">
+  <link rel="canonical" href="https://ysrcpnriwing-eight.vercel.app/">
+  <!-- link previews (WhatsApp, Facebook, X, LinkedIn) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="YSRCP NRI Wing">
+  <meta property="og:title" content="YSRCP NRI Wing – Global Unity, Local Impact">
+  <meta property="og:description" content="Join the YSRCP Global NRI Wing: digital member card, 24/7 help desk for families in AP, city teams in 30+ countries, events and volunteering.">
+  <meta property="og:url" content="https://ysrcpnriwing-eight.vercel.app/">
+  <meta property="og:image" content="https://ysrcpnriwing-eight.vercel.app/images/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="YSRCP NRI Wing – Global Unity, Local Impact">
+  <meta name="twitter:description" content="Digital member card, 24/7 help desk, city teams in 30+ countries, events and volunteering for Telugu NRIs.">
+  <meta name="twitter:image" content="https://ysrcpnriwing-eight.vercel.app/images/og-image.jpg">
+  <!-- install as an app -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NRI Wing">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"YSRCP NRI Wing","alternateName":"YSR Congress Party Global NRI Wing","url":"https://ysrcpnriwing-eight.vercel.app/","logo":"https://ysrcpnriwing-eight.vercel.app/images/icon-512.png","email":"info@ysrcpnriwing.org","sameAs":["https://x.com/YSRCParty","https://www.facebook.com/ysrcpofficial","https://www.instagram.com/ysrcpofficial","https://www.youtube.com/@YSRCPOfficial"]}</script>
+  <link rel="icon" href="images/icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet">
@@ -57,6 +78,11 @@
           <a href="#services" data-svc="student">🎓 Student Support</a>
           <a href="#" data-open247>🛟 24/7 Emergency Support</a>
           <a href="#" data-idcard>🪪 Digital ID Card</a>
+          <a href="#voter">🗳️ Register to vote (Form 6A)</a>
+          <a href="#emergency">🆘 Emergency directory</a>
+          <a href="#jobs">💼 Jobs &amp; skills</a>
+          <a href="#associations">🤝 Telugu associations</a>
+          <a href="#" data-photo-frame>📸 Photo with Jagan Anna</a>
         </div>
       </div>
       <a href="#mark" data-i18n="navMark">JaganAnna Mark</a>
@@ -298,6 +324,22 @@
 </section>
 
 <!-- ================= EVENTS ================= -->
+<!-- ================= TELUGU ASSOCIATIONS ================= -->
+<section id="associations" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Community</span>
+      <h2 data-i18n="assocTitle">Telugu associations near you</h2>
+      <p data-i18n="assocText">Telugu associations and cultural groups by country and city. Know one that is missing? Tell us.</p>
+    </div>
+    <div class="jobs-tools reveal">
+      <div class="search-box"><span>🔍</span><input id="assocSearch" type="search" placeholder="Search country or city…" aria-label="Search associations"></div>
+      <button class="btn btn-ghost" data-suggest-assoc>＋ Suggest an association</button>
+    </div>
+    <div class="assoc-list" id="assocList"></div>
+  </div>
+</section>
+
 <section id="events" class="section">
   <div class="container">
     <div class="section-head reveal">
@@ -367,7 +409,7 @@
           <select name="cat" required>
             <option value="">Choose…</option>
             <option>Family welfare</option><option>Property / land</option><option>Documents & certificates</option>
-            <option>Medical emergency</option><option>Emergency abroad (24/7)</option><option>Gulf worker – repatriation</option><option>Other</option>
+            <option>Medical emergency</option><option>Emergency abroad (24/7)</option><option>Gulf worker – repatriation</option><option>Voter registration (Form 6A)</option><option>Other</option>
           </select>
         </label>
         <label>Home district in AP<select name="district" id="helpDistrict" required><option value="">Choose…</option></select></label>
@@ -388,6 +430,64 @@
   </div>
 </section>
 
+<!-- ================= VOTER REGISTRATION (FORM 6A) ================= -->
+<section id="voter" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">For Indian citizens abroad</span>
+      <h2 data-i18n="voterTitle">Register to vote from abroad (Form 6A)</h2>
+      <p data-i18n="voterText">Indian citizens living abroad (who have not taken another citizenship) can be added to the voter list of their home constituency in AP.</p>
+    </div>
+    <div class="voter-grid">
+      <div class="voter-steps reveal" id="voterSteps"></div>
+      <div class="voter-side reveal">
+        <div class="voter-box"><h4>📋 Keep these ready</h4><ul id="voterDocs"></ul></div>
+        <div class="voter-box note"><h4>🗳️ On election day</h4><p>Overseas electors vote <b>in person</b> at their polling station in AP, showing their <b>original Indian passport</b>. There is no postal or online voting for overseas electors.</p></div>
+        <div class="voter-actions">
+          <a class="btn btn-primary" href="https://voters.eci.gov.in" target="_blank" rel="noopener">Open ECI Voters' Portal ↗</a>
+          <button class="btn btn-ghost" data-voter-help>🙋 Help me fill it</button>
+        </div>
+        <p class="fine left">Rules can change – always check the latest on voters.eci.gov.in. This guide is for information only.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= EMERGENCY DIRECTORY ================= -->
+<section id="emergency" class="section alt">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Save these numbers</span>
+      <h2 data-i18n="emerTitle">Emergency directory</h2>
+      <p data-i18n="emerText">Official helplines for NRIs and their families. The NRI Wing is not a government office – for official help, contact these services directly.</p>
+    </div>
+    <div class="emer-grid" id="emerGrid"></div>
+    <div class="emer-local reveal">
+      <h4>📟 Local emergency numbers</h4>
+      <div class="emer-chips" id="emerLocal"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= JOBS & SKILLS ================= -->
+<section id="jobs" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="kicker">Members helping members</span>
+      <h2 data-i18n="jobsTitle">Jobs &amp; skills corner</h2>
+      <p data-i18n="jobsText">Job openings and referrals shared by NRI members, mentoring, skills training and help for NRIs returning home.</p>
+    </div>
+    <div class="jobs-tools reveal">
+      <div class="chips" id="jobChips"></div>
+      <button class="btn btn-primary" data-post-job>＋ Share a job / referral</button>
+    </div>
+    <div class="job-list" id="jobList"></div>
+    <div class="jobs-warning reveal">⚠️ <b>Beware of fake job agents.</b> Never pay money for a job offer. For Gulf and ECR countries, check that the recruiting agent is registered on <a href="https://emigrate.gov.in" target="_blank" rel="noopener">emigrate.gov.in</a>. The NRI Wing only shares posts – please verify every offer yourself.</div>
+    <h3 class="sub-title reveal">Skills, training &amp; returning home</h3>
+    <div class="res-grid" id="skillLinks"></div>
+  </div>
+</section>
+
 <!-- ================= VOLUNTEER ================= -->
 <section id="volunteer" class="section">
   <div class="container">
@@ -395,6 +495,7 @@
       <span class="kicker" data-i18n="volKicker">Volunteer Corner</span>
       <h2 data-i18n="volTitle">This week's tasks</h2>
       <p data-i18n="volText">Complete tasks, earn points and get monthly recognition.</p>
+      <p class="week-note">🔁 Tasks repeat every week – do them again from Monday for more points.</p>
     </div>
     <div class="vol-layout">
       <div class="task-grid" id="taskGrid"></div>
@@ -500,12 +601,18 @@
       <a href="#services">Education Guidance</a><a href="#services">Visa Support</a><a href="#services">Job Assistance</a><a href="#services">Gulf Worker Support</a><a href="#services">Native Village Connect</a></div>
     <div><h4 data-i18n="footerLinks">Quick Links</h4>
       <a href="#about">About YSRCP</a><a href="#leadership">Leadership</a><a href="#chapters">My City</a><a href="#events">Events</a><a href="#helpdesk">Help Desk</a><a href="#achievements">Achievements</a></div>
+    <div class="footer-news"><h4 data-i18n="footerNews">Monthly newsletter</h4>
+      <p class="muted">News from the NRI Wing, events and help-desk tips – once a month.</p>
+      <form id="newsForm" class="news-form"><input name="email" type="email" required placeholder="Your email" aria-label="Your email"><button class="btn btn-primary btn-sm">Subscribe</button>
+        <label class="check"><input type="checkbox" required> <span>I agree to receive emails. Unsubscribe any time.</span></label></form>
+      <button class="btn btn-ghost btn-sm install-btn" id="installBtn" hidden>📲 Install the app</button>
+    </div>
     <div><h4 data-i18n="footerRegions">Regions</h4>
       <a href="#chapters" data-region="North America">North America</a><a href="#chapters" data-region="Europe">Europe</a><a href="#chapters" data-region="Gulf">Gulf</a><a href="#chapters" data-region="South East Asia">South East Asia</a><a href="#chapters" data-region="Australia & NZ">Australia & NZ</a></div>
   </div>
   <div class="container footer-bottom">
     <span>✉ <a href="mailto:info@ysrcpnriwing.org">info@ysrcpnriwing.org</a> · 🌐 <a href="https://www.ysrcongress.com" target="_blank" rel="noopener">www.ysrcongress.com</a></span>
-    <span>© <span id="yr"></span> YSR Congress Party · <a href="#" data-modal-text="terms">Terms</a> · <a href="#" data-modal-text="privacy">Privacy</a> · <a href="#" data-modal-text="credits">Photo credits</a></span>
+    <span>© <span id="yr"></span> YSR Congress Party · <a href="#" data-modal-text="terms">Terms</a> · <a href="#" data-modal-text="privacy">Privacy</a> · <a href="#" data-modal-text="conduct">Code of conduct</a> · <a href="#" data-modal-text="credits">Photo credits</a></span>
   </div>
 </footer>
 

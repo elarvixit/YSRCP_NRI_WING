@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /task.html
+Disallow: /verify.html
+Disallow: /api/
+
+Sitemap: https://ysrcpnriwing-eight.vercel.app/sitemap.xml

@@ -521,7 +521,7 @@
     query = name.toLowerCase(); region = "all";
     $("#chapterSearch").value = name;
     renderRegionChips(); renderChapters();
-    $("#countryList tr").forEach((tr) => tr.classList.toggle("on", tr.dataset.country === name));
+    $$("#countryList tr").forEach((tr) => tr.classList.toggle("on", tr.dataset.country === name));
     if (committeeTeams) { committeeCountry = name; renderCommittee(); }
     goTo("chapters");
     setTimeout(() => $("#chapterGrid").scrollIntoView({ behavior: "smooth", block: "start" }), 120);
@@ -949,7 +949,8 @@
   });
 
   /* ---------- volunteer ---------- */
-  const points = () => state.tasks.reduce((s, id) => s + (TASKS.find((x) => x.id === id)?.pts || 0), 0) + (state.user ? 10 : 0);
+  const points = () => (API.online && state.user && typeof state.serverPoints === "number") ? state.serverPoints
+    : state.tasks.reduce((s, id) => s + (TASKS.find((x) => x.id === id)?.pts || 0), 0) + (state.user ? 10 : 0);
   // online: done = approved by an admin after the member sends proof; offline: self-marked
   const taskState = (id) => (state.tasks.includes(id) ? "approved" : (state.taskSubs[id] && state.taskSubs[id].status) || "none");
   function renderTasks() {
@@ -1018,10 +1019,10 @@
   }
   // screenshot → max 1080px wide JPEG (about 100–200 KB)
   function pickScreenshot() {
-    return new Promise((resolve) => {
-      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
-      inp.onchange = () => {
-        const file = inp.files && inp.files[0]; if (!file || !file.type.startsWith("image/")) return resolve(null);
+    return new Promise(async (resolve) => {
+      const file = await choosePhotoSource({ facing: "environment", title: "Add a photo or screenshot" });
+      {
+        if (!file || !String(file.type).startsWith("image/")) return resolve(null);
         const url = URL.createObjectURL(file), img = new Image();
         img.onload = () => {
           let w = img.width, h = img.height, q = 0.72;
@@ -1035,8 +1036,7 @@
         };
         img.onerror = () => { URL.revokeObjectURL(url); toast("Sorry, that image could not be opened"); resolve(null); };
         img.src = url;
-      };
-      inp.click();
+      }
     });
   }
   async function loadTaskLinks() {
@@ -1092,7 +1092,6 @@
   }
   $("#milestones").innerHTML = ACH_MILESTONES.map((m, i) => `<div class="milestone${m.photo ? " has-bg" : ""}" style="--i:${i}">${m.photo ? `<span class="ms-bg" style="background-image:url(&quot;${esc(m.photo)}&quot;);background-position:${m.pos || "center"}" role="img" aria-label="Y.S. Jagan Mohan Reddy, ${m.when}"></span>` : ""}<span class="when">${m.when}</span><h4>${esc(m.title)}</h4><p>${esc(m.text)}</p></div>`).join("");
   $("#govGrid").innerHTML = GOV_ACH.map((g, i) => `<div class="gov${g.bg ? " has-bg" : ""}" style="--i:${i}">${g.bg ? `<span class="gov-bg" style="background-image:url(&quot;${esc(g.bg)}&quot;)"></span>` : ""}<span class="ic">${g.icon}</span><div><b class="count" data-to="${g.n}" data-suffix="${g.suffix}">0</b><h4>${esc(g.title)}</h4><p>${esc(g.text)}</p></div></div>`).join("");
-  $("#fameTrack").innerHTML = HALL_OF_FAME.map((f, i) => `<div class="fame" style="--i:${i}"><div class="av" data-badge="${f.badge}">${esc(f.name[0])}</div><span class="title">${esc(f.title)}</span><h4>${esc(f.name)}</h4><small>${esc(f.city)}</small><p>${esc(f.note)}</p></div>`).join("");
   function renderBadges() {
     const p = points();
     $("#badgeGrid").innerHTML = BADGES.map((b) => `<div class="badge ${p >= b.need ? "on" : ""}"><span class="ic">${b.icon}</span><h5>${b.name}</h5><small>${p >= b.need ? "Unlocked ✓" : b.need + " pts"}</small></div>`).join("") +
@@ -1210,6 +1209,7 @@
     if (e.target.closest("[data-photo]")) changePhoto();
     if (e.target.closest("[data-logout]")) logout("Logged out");
     if (e.target.closest("[data-delete-me]")) deleteMyData();
+    if (e.target.closest("[data-cancel-delete]")) cancelDeletion();
   });
   document.addEventListener("submit", async (e) => {
     if (e.target.dataset.form !== "wa") return;
@@ -1223,7 +1223,23 @@
 
   const creditsHTML = () => `<h3 id="modalTitle">Photo credits</h3><p>Leader photos are freely licensed images from Wikimedia Commons. Pillar, banner and service photos are from the YSRCP NRI Wing website.</p><ul>${[...Object.values(PHOTOS), ALURU_PHOTO, ...Object.values(SITE_PHOTOS), ...JOURNEY.map((j) => j.photo), ...(IMG.heroBg || [])].map((p) => `<li><b>${esc(p.cap)}</b><br><small class="muted">${esc(p.credit)}</small></li>`).join("")}</ul><p class="muted" style="font-size:.85rem">GODL-India: Government Open Data License – India. CC BY-SA 4.0: Creative Commons Attribution-ShareAlike 4.0.</p>`;
   const LEGAL = {
-    privacy: `<h3 id="modalTitle">Privacy notice</h3><p>We collect only what is needed to connect you with your city team and handle help requests, with your clear consent, in line with the Digital Personal Data Protection Act 2023 (and GDPR for members in the EU/UK).</p><ul><li>Only your chapter coordinator can see your member details.</li><li>Help-desk details stay private to the assigned volunteer.</li><li>You can ask us to delete your data at any time: info@ysrcpnriwing.org</li></ul>`,
+    conduct: `<h3 id="modalTitle">Code of conduct</h3>
+      <p>Members of the YSRCP NRI Wing represent our community abroad. By joining you agree to:</p>
+      <ul class="legal-list"><li><b>Respect everyone</b> – no abuse, hate speech, threats or personal attacks, online or offline.</li>
+      <li><b>Follow the laws of your country of residence.</b> The NRI Wing does not take part in, campaign in or fund elections of other countries.</li>
+      <li><b>No money collection</b> in the party's name. The party does not accept foreign contributions (FCRA 2010).</li>
+      <li><b>Share only verified information</b> – no fake news, morphed images or misleading posts.</li>
+      <li><b>Protect privacy</b> – never share other members' or help-desk families' personal details.</li>
+      <li><b>Gulf &amp; ECR pages</b> are only for welfare and support.</li></ul>
+      <p>Breaking these rules can lead to removal from the NRI Wing. Report misuse to <a href="mailto:info@ysrcpnriwing.org">info@ysrcpnriwing.org</a>.</p>`,
+    privacy: `<h3 id="modalTitle">Privacy notice</h3>
+      <p>We collect only what is needed to connect you with your city team, run the Help Desk and volunteering, with your clear consent – in line with India's Digital Personal Data Protection Act 2023 (and GDPR / UK GDPR for members in Europe).</p>
+      <ul class="legal-list"><li><b>What:</b> name, contact details, country/city, home district, profession, optional photo, your requests and tasks.</li>
+      <li><b>Who sees it:</b> NRI Wing admins; city coordinators see only their city's members; help-desk details only go to the assigned volunteer.</li>
+      <li><b>Your QR card:</b> shows only your first name, initial, city and home district. Your photo is shown only if you switch it on in My Dashboard.</li>
+      <li><b>Your rights:</b> download your data, correct it, stop emails, or ask us to delete everything – from My Dashboard, any time (an admin confirms the deletion).</li>
+      <li><b>No selling, no foreign donations:</b> we never sell data and do not accept foreign contributions (FCRA 2010).</li></ul>
+      <p><b>Grievance contact:</b> ${esc(GRIEVANCE.name)} – <a href="mailto:${esc(GRIEVANCE.email)}">${esc(GRIEVANCE.email)}</a></p>`,
     terms: `<h3 id="modalTitle">Terms of use</h3><p>This website is for information, community and volunteering. It does not collect donations or foreign contributions (FCRA 2010). Content on Gulf pages is limited to welfare and support.</p>`
   };
 
@@ -1242,13 +1258,21 @@
           <label data-other-city hidden>Your city<input name="cityOther" maxlength="60" placeholder="Type your city"></label>
           <button type="button" class="btn btn-primary btn-block" data-next>Continue →</button>
         </div>
+        <div class="stack" data-step="verify" hidden>
+          <p class="verify-intro">🔐 To protect your account, enter the 6-digit codes we sent you.</p>
+          <div class="verify-row" data-vrow="email" hidden><label>Email code <small class="muted" data-vto="email"></small><input name="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="code-input"></label>
+            <button type="button" class="btn btn-ghost btn-sm" data-vresend="email">Send again</button><span class="v-ok" data-vok="email" hidden>✅ Verified</span></div>
+          <div class="verify-row" data-vrow="phone" hidden><label>SMS code <small class="muted" data-vto="phone"></small><input name="phoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" class="code-input"></label>
+            <button type="button" class="btn btn-ghost btn-sm" data-vresend="phone">Send again</button><span class="v-ok" data-vok="phone" hidden>✅ Verified</span></div>
+          <div class="row2"><button type="button" class="btn btn-ghost" data-vback>← Change details</button><button type="button" class="btn btn-primary" data-vcheck>Verify &amp; continue →</button></div>
+        </div>
         <div class="stack" data-step="2" hidden>
           <div class="reg-photo"><button type="button" class="photo-pick" data-reg-photo aria-label="Add your photo"><span>📷</span></button><div><b>Your photo</b> <small class="muted">(optional)</small><br><small class="muted">Shown on your digital member card.</small></div></div>
           <label>Profession<select name="profession" required><option value="">Choose your work…</option>${Object.entries(PROFESSIONS).map(([g, list]) => `<optgroup label="${esc(g)}">${list.map((p) => `<option>${esc(p)}</option>`).join("")}</optgroup>`).join("")}<option value="__other">Other – type my work</option></select></label>
           <label data-other-prof hidden>Your work<input name="professionOther" maxlength="80" placeholder="Type your profession"></label>
           <div class="row2"><label>Home district (AP)<select name="district" required><option value="">Choose…</option>${DISTRICTS.map((d) => `<option>${esc(d)}</option>`).join("")}</select></label>
           <label>Assembly constituency<select name="constituency" required disabled><option value="">Choose district first</option></select></label></div>
-          <label class="check"><input type="checkbox" required> <span>I am an Indian citizen / person of Indian origin and consent to the <a href="#" data-modal-text="privacy" style="color:var(--blue)">privacy notice</a> (DPDP Act 2023).</span></label>
+          <label class="check"><input type="checkbox" required> <span>I am an Indian citizen / person of Indian origin, I agree to the <a href="#" data-modal-text="conduct" style="color:var(--blue)">code of conduct</a> and consent to the <a href="#" data-modal-text="privacy" style="color:var(--blue)">privacy notice</a> (DPDP Act 2023).</span></label>
           <div class="row2"><button type="button" class="btn btn-ghost" data-back>← Back</button><button class="btn btn-primary">Create my member card</button></div>
         </div>
       </form>
@@ -1289,18 +1313,53 @@
         : `<option value="">Choose district first</option>`;
     });
     let regPhoto = null;
+    // verified email / phone (ticket from the server, tied to the exact value)
+    const verified = {};
+    const valueOf = (ch) => form.elements[ch].value.trim();
+    async function sendCode(ch) {
+      try { const r = await API.post("/verify/send", { channel: ch, value: valueOf(ch) }); toast("📨 " + r.message); return true; }
+      catch (err) { toast(err.message); return false; }
+    }
     form.addEventListener("click", async (e) => {
       if (e.target.closest("[data-reg-photo]")) {
         const ph = await pickPhoto(); if (!ph) return;
         regPhoto = ph; $("[data-reg-photo]", form).innerHTML = `<img src="${ph}" alt="Your photo">`;
       }
+      const showStep = (name) => { $$("[data-step]", form).forEach((el) => (el.hidden = el.dataset.step !== name)); $$(".form-steps i")[1].classList.toggle("on", name === "2"); };
       if (e.target.closest("[data-next]")) {
         const s1 = $('[data-step="1"]', form);
         const bad = $$("input, select", s1).find((i) => !i.disabled && !i.checkValidity());
         if (bad) { bad.reportValidity(); return; }
-        s1.hidden = true; $('[data-step="2"]', form).hidden = false; $$(".form-steps i")[1].classList.add("on");
+        // email / phone verification (when the server can send codes)
+        const need = API.online ? ["email", "phone"].filter((ch) => (ch === "email" ? siteConfig.verifyEmail : siteConfig.verifyPhone)) : [];
+        const todo = need.filter((ch) => !verified[ch] || verified[ch].value !== valueOf(ch));
+        if (!todo.length) { showStep("2"); return; }
+        const btn = e.target.closest("[data-next]"); btn.disabled = true;
+        for (const ch of need) {
+          $(`[data-vrow="${ch}"]`, form).hidden = false;
+          $(`[data-vto="${ch}"]`, form).textContent = "→ " + valueOf(ch);
+        }
+        const ok = (await Promise.all(todo.map((ch) => sendCode(ch)))).every(Boolean);
+        btn.disabled = false;
+        if (ok) { showStep("verify"); const first = $(`[data-vrow="${todo[0]}"] input`, form); first && first.focus(); }
       }
-      if (e.target.closest("[data-back]")) { $('[data-step="1"]', form).hidden = false; $('[data-step="2"]', form).hidden = true; $$(".form-steps i")[1].classList.remove("on"); }
+      const rs = e.target.closest("[data-vresend]"); if (rs) sendCode(rs.dataset.vresend);
+      if (e.target.closest("[data-vback]")) showStep("1");
+      if (e.target.closest("[data-vcheck]")) {
+        const need = ["email", "phone"].filter((ch) => !$(`[data-vrow="${ch}"]`, form).hidden);
+        for (const ch of need) {
+          if (verified[ch] && verified[ch].value === valueOf(ch)) continue;
+          const code = form.elements[ch + "Code"].value.replace(/\D/g, "");
+          if (code.length !== 6) { toast(`Please enter the 6-digit ${ch === "email" ? "email" : "SMS"} code`); form.elements[ch + "Code"].focus(); return; }
+          try {
+            const r = await API.post("/verify/check", { channel: ch, value: valueOf(ch), code });
+            verified[ch] = { value: valueOf(ch), ticket: r.ticket };
+            $(`[data-vok="${ch}"]`, form).hidden = false;
+          } catch (err) { toast(err.message); return; }
+        }
+        toast("✅ Verified"); showStep("2");
+      }
+      if (e.target.closest("[data-back]")) showStep("1");
     });
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1315,7 +1374,9 @@
       if (API.online) {
         const btn = $("button:not([type])", form); if (btn) btn.disabled = true;
         try {
-          const r = await API.post("/members", { ...f, chapter: near ? near.city : "", consent: true });
+          delete f.emailCode; delete f.phoneCode;
+          const r = await API.post("/members", { ...f, chapter: near ? near.city : "", consent: true,
+            emailTicket: verified.email && verified.email.ticket, phoneTicket: verified.phone && verified.phone.ticket });
           API.setToken(r.token);
           state.user = memberFromApi(r.member);
         } catch (err) { toast(err.message); if (btn) btn.disabled = false; return; }
@@ -1331,6 +1392,7 @@
   }
 
   function openLogin() {
+    if (API.online && siteConfig.otp) return openCodeLogin();
     openModal(`<h3 id="modalTitle">Welcome back</h3><p class="muted">Login with your email and member number.</p>
       <form id="loginForm" class="stack"><label>Email<input name="email" type="email" required autocomplete="email"></label>
       <label>Member number<input name="no" required placeholder="YSRNRI-2026-12345"></label>
@@ -1356,6 +1418,32 @@
     });
   }
 
+  // safer login: we email a 6-digit code
+  function openCodeLogin() {
+    openModal(`<h3 id="modalTitle">Welcome back</h3><p class="muted">Enter your email – we will send you a 6-digit login code.</p>
+      <form id="codeForm1" class="stack"><label>Email<input name="email" type="email" required autocomplete="email"></label>
+      <button class="btn btn-primary btn-block">Send me a code</button></form>
+      <form id="codeForm2" class="stack" hidden><label>6-digit code<input name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]{6,7}" maxlength="7" required placeholder="123456" class="code-input"></label>
+      <button class="btn btn-primary btn-block">Login</button><button type="button" class="btn btn-ghost btn-block" data-code-again>Send a new code</button></form>
+      <p class="switch-link">New here? <a data-open="register">Register</a></p>`);
+    const f1 = $("#codeForm1"), f2 = $("#codeForm2");
+    let email = "";
+    const send = async () => {
+      try { const r = await API.post("/login/code", { email }); toast("📧 " + r.message); f1.hidden = true; f2.hidden = false; f2.elements.code.focus(); }
+      catch (err) { toast(err.message); }
+    };
+    f1.addEventListener("submit", (e) => { e.preventDefault(); email = f1.elements.email.value.trim(); send(); });
+    f2.addEventListener("click", (e) => { if (e.target.closest("[data-code-again]")) send(); });
+    f2.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        const r = await API.post("/login/verify", { email, code: f2.elements.code.value });
+        API.setToken(r.token); state.user = memberFromApi(r.member); store.set("user", state.user);
+        await syncMe(); openDashboard(); toast("👋 Welcome back, " + state.user.name.split(" ")[0]);
+      } catch (err) { toast(err.message); }
+    });
+  }
+
   function qrDataURL(text) {
     try { const q = qrcode(0, "M"); q.addData(text); q.make(); return q.createDataURL(4, 0); } catch { return ""; }
   }
@@ -1363,23 +1451,80 @@
   const cardPayload = (u) => `${/^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? PUBLIC_SITE : location.origin}/verify.html?m=${encodeURIComponent(u.no)}`;
 
   /* member photo: square crop, 320px JPEG (about 30 KB) */
-  function pickPhoto() {
+  /* ---------- photo source: camera or folder ---------- */
+  // returns a File/Blob (or null): shows "Take a photo" / "Choose from folder" first
+  function choosePhotoSource({ facing = "user", title = "Add a photo" } = {}) {
     return new Promise((resolve) => {
-      const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
-      inp.onchange = () => {
-        const file = inp.files && inp.files[0]; if (!file) return resolve(null);
-        if (!file.type.startsWith("image/")) { toast("Please choose a photo"); return resolve(null); }
-        const url = URL.createObjectURL(file), img = new Image();
-        img.onload = () => {
-          const S = 320, side = Math.min(img.width, img.height), c = document.createElement("canvas"); c.width = c.height = S;
-          c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
-          URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", 0.85));
-        };
-        img.onerror = () => { URL.revokeObjectURL(url); toast("Sorry, that photo could not be opened"); resolve(null); };
-        img.src = url;
+      const sheet = document.createElement("div");
+      sheet.className = "photo-sheet";
+      sheet.innerHTML = `<div class="ps-box" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+        <h4>${esc(title)}</h4>
+        <div class="ps-choose">
+          <button type="button" class="ps-opt" data-ps="camera"><span>📷</span><b>Take a photo</b><small>Use your camera</small></button>
+          <button type="button" class="ps-opt" data-ps="folder"><span>🖼️</span><b>Choose from folder</b><small>Gallery / files</small></button>
+        </div>
+        <div class="ps-cam" hidden><video playsinline autoplay muted></video>
+          <div class="ps-cam-acts"><button type="button" class="btn btn-ghost btn-sm" data-ps="flip">🔄 Switch camera</button><button type="button" class="btn btn-primary" data-ps="shot">📸 Capture</button></div></div>
+        <button type="button" class="ps-cancel" data-ps="cancel">Cancel</button></div>`;
+      document.body.appendChild(sheet);
+      requestAnimationFrame(() => sheet.classList.add("open"));
+      let stream = null, mode = facing, done = false;
+      const video = $("video", sheet);
+      const stop = () => { if (stream) stream.getTracks().forEach((t) => t.stop()); stream = null; };
+      const finish = (file) => { if (done) return; done = true; stop(); sheet.classList.remove("open"); setTimeout(() => sheet.remove(), 250); resolve(file || null); };
+      const fileInput = (capture) => {
+        const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*";
+        if (capture) inp.setAttribute("capture", mode); // phones open the camera directly
+        inp.onchange = () => finish(inp.files && inp.files[0]);
+        inp.click();
       };
-      inp.click();
+      async function startCamera() {
+        if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return fileInput(true);
+        try {
+          stop();
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 1280 } }, audio: false });
+          video.srcObject = stream;
+          $(".ps-choose", sheet).hidden = true; $(".ps-cam", sheet).hidden = false;
+        } catch {
+          toast("Camera not available – opening the phone camera / files instead");
+          fileInput(true);
+        }
+      }
+      sheet.addEventListener("click", (e) => {
+        const b = e.target.closest("[data-ps]");
+        if (!b) { if (e.target === sheet) finish(null); return; }
+        const a = b.dataset.ps;
+        if (a === "cancel") finish(null);
+        if (a === "folder") fileInput(false);
+        if (a === "camera") startCamera();
+        if (a === "flip") { mode = mode === "user" ? "environment" : "user"; startCamera(); }
+        if (a === "shot" && video.videoWidth) {
+          const c = document.createElement("canvas"); c.width = video.videoWidth; c.height = video.videoHeight;
+          const x = c.getContext("2d");
+          if (mode === "user") { x.translate(c.width, 0); x.scale(-1, 1); } // selfie looks like a mirror
+          x.drawImage(video, 0, 0);
+          c.toBlob((blob) => finish(blob && new File([blob], "camera.jpg", { type: "image/jpeg" })), "image/jpeg", 0.92);
+        }
+      });
+      document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { document.removeEventListener("keydown", esc); finish(null); } });
     });
+  }
+  // File → square 320px JPEG data URL
+  const fileToSquare = (file, S = 320) => new Promise((resolve) => {
+    if (!file || !String(file.type).startsWith("image/")) { if (file) toast("Please choose a photo"); return resolve(null); }
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const side = Math.min(img.width, img.height), c = document.createElement("canvas"); c.width = c.height = S;
+      c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, S, S);
+      URL.revokeObjectURL(url); resolve(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast("Sorry, that photo could not be opened"); resolve(null); };
+    img.src = url;
+  });
+
+  async function pickPhoto() {
+    const file = await choosePhotoSource({ title: "Your photo for the member card" });
+    return file ? fileToSquare(file) : null;
   }
   async function savePhoto(photo) {
     if (API.online && API.getToken()) {
@@ -1463,10 +1608,19 @@
         <div class="dash-tile"><h5>✅ My tasks</h5>${done.length ? `<ul>${done.map((d) => `<li>${esc(d.title)}</li>`).join("")}</ul>` : `<a href="#volunteer" data-close style="color:var(--blue)">Start a task →</a>`}${Object.values(state.taskSubs).filter((s) => s.status === "pending").length ? `<small class="muted">⏳ ${Object.values(state.taskSubs).filter((s) => s.status === "pending").length} waiting for review</small>` : ""}</div>
         <div class="dash-tile" style="grid-column:1/-1"><h5>🛟 My help requests</h5>${state.tickets.length ? state.tickets.map((tk) => `<span class="pill" style="margin-right:6px">#${esc(tk.id)} · ${STATUSES[ticketStage(tk)]}</span>`).join("") : `<a href="#helpdesk" data-close style="color:var(--blue)">Raise a request →</a>`}</div>
       </div>
-      <div class="dash-actions"><button class="btn btn-primary" data-card>🪪 ${esc(t("myCard", "My member card"))}</button><button class="btn btn-ghost" data-logout>${esc(t("logout", "Logout"))}</button>${API.online ? `<button class="btn btn-ghost btn-danger" data-delete-me>Delete my data</button>` : ""}</div>`, true);
+      ${state.deletionRequest && state.deletionRequest.status === "pending" ? `<div class="del-banner">⏳ <b>Account deletion requested</b> on ${tkDate(state.deletionRequest.created_at)} – waiting for admin approval.</div>` : ""}
+      ${state.deletionRequest && state.deletionRequest.status === "rejected" ? `<div class="del-banner no">❌ Deletion request not approved${state.deletionRequest.review_note ? ": " + esc(state.deletionRequest.review_note) : ""}</div>` : ""}
+      ${API.online ? `<div class="dash-tile prefs" style="grid-column:1/-1"><h5>🔒 Privacy &amp; notifications</h5>
+        <label class="check"><input type="checkbox" data-pref-photo ${u.showPhoto ? "checked" : ""}> <span>Show my photo when someone scans my member card QR</span></label>
+        <label class="check"><input type="checkbox" data-pref-email ${u.notifyEmail !== false ? "checked" : ""}> <span>Email me about my help requests and volunteer tasks</span></label>
+        <a href="#" data-export-me>⬇ Download my data</a></div>` : ""}
+      <div class="dash-actions"><button class="btn btn-ghost" data-photo-frame>📸 Photo with Jagan Anna</button></div>
+      <div class="dash-actions"><button class="btn btn-primary" data-card>🪪 ${esc(t("myCard", "My member card"))}</button><button class="btn btn-ghost" data-logout>${esc(t("logout", "Logout"))}</button>${API.online ? (state.deletionRequest && state.deletionRequest.status === "pending"
+        ? `<button class="btn btn-ghost" data-cancel-delete>Cancel deletion request</button>`
+        : `<button class="btn btn-ghost btn-danger" data-delete-me>Request account deletion</button>`) : ""}</div>`, true);
   }
 
-  const memberFromApi = (m) => ({ name: m.name, email: m.email, phone: m.phone, country: m.country, city: m.city, profession: m.profession, district: m.district, constituency: m.constituency, chapter: m.chapter || "", no: m.memberNo, joined: m.joined, photo: m.photo || null });
+  const memberFromApi = (m) => ({ showPhoto: !!m.showPhoto, notifyEmail: m.notifyEmail !== false, name: m.name, email: m.email, phone: m.phone, country: m.country, city: m.city, profession: m.profession, district: m.district, constituency: m.constituency, chapter: m.chapter || "", no: m.memberNo, joined: m.joined, photo: m.photo || null });
   // load the logged-in member's data from the backend
   async function syncMe() {
     if (!API.online || !API.getToken()) return;
@@ -1475,6 +1629,8 @@
       state.user = memberFromApi(r.member);
       state.rsvps = r.rsvps; state.tasks = r.tasks;
       state.taskSubs = Object.fromEntries((r.taskSubmissions || []).map((x) => [x.id, x]));
+      state.serverPoints = r.points;
+      state.deletionRequest = r.deletionRequest || null;
       state.tickets = r.tickets.map((x) => ({ ...x, urgent: !!x.urgent }));
       store.set("user", state.user); save("rsvps"); save("tasks"); save("tickets");
       renderAuth(); renderEvents(); renderTasks(); renderMyTickets();
@@ -1487,10 +1643,20 @@
     closeModal(); renderAuth(); renderPoints();
     if (message) toast(message);
   }
-  async function deleteMyData() {
-    if (!confirm("Delete your membership and all your data? This cannot be undone.")) return;
-    try { await API.del("/me"); logout("Your data has been deleted."); loadLeaderboard(); }
-    catch (err) { toast(err.message); }
+  // members can't delete their account themselves – an admin approves the request
+  function deleteMyData() {
+    openModal(`<h3 id="modalTitle">Request account deletion</h3>
+      <p>Your request goes to the NRI Wing admins. After they approve it, your membership and personal data are deleted and you will get an email.</p>
+      <form id="delForm" class="stack"><label>Reason <small class="muted">(optional)</small><textarea name="reason" rows="3" maxlength="500" placeholder="Tell us why you want to leave – it helps us improve"></textarea></label>
+      <div class="row2"><button type="button" class="btn btn-ghost" data-dashboard>← Back</button><button class="btn btn-danger">Send deletion request</button></div></form>`);
+    $("#delForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try { const r = await API.post("/me/delete-request", { reason: e.target.elements.reason.value }); toast(r.message); await syncMe(); openDashboard(); }
+      catch (err) { toast(err.message); }
+    });
+  }
+  async function cancelDeletion() {
+    try { await API.del("/me/delete-request"); toast("Deletion request cancelled"); await syncMe(); openDashboard(); } catch (err) { toast(err.message); }
   }
 
   function renderAuth() {
@@ -1504,21 +1670,227 @@
   }
 
   /* ---------- backend connection ---------- */
+  // email-code login is used when the server can send emails
+  let siteConfig = { otp: false };
+  async function loadConfig() { try { siteConfig = await API.get("/config"); } catch {} }
   API.ready.then((online) => {
     document.body.dataset.backend = online ? "online" : "offline";
     if (!online) return;
     if (state.user && !API.getToken()) logout(); // old browser-only login → please log in again
-    syncMe().then(() => { if (!API.getToken()) refreshTickets(); }); loadQuestions(); loadLeaderboard(); loadSocialGallery(); loadCommittees(); loadTaskLinks();
+    syncMe().then(() => { if (!API.getToken()) refreshTickets(); }); loadQuestions(); loadLeaderboard(); loadSocialGallery(); loadCommittees(); loadTaskLinks(); loadAssociations(); loadJobs(); loadFame(); loadConfig();
   });
+
+  /* ======================================================================
+     New features: voter help, emergency directory, associations, jobs,
+     newsletter, Hall of Fame, photo frame, privacy, language, app install
+     ====================================================================== */
+
+  /* ---------- Form 6A guide ---------- */
+  $("#voterSteps").innerHTML = VOTER_STEPS.map((st, i) => `<div class="v-step" style="--i:${i}"><b>${i + 1}</b><div><h4>${esc(st.t)}</h4><p>${esc(st.d)}</p></div></div>`).join("");
+  $("#voterDocs").innerHTML = VOTER_DOCS.map((d) => `<li>✓ ${esc(d)}</li>`).join("");
+  stagger($("#voterSteps"));
+  // open the Help Desk form with the right category
+  function openHelpWith(cat, urgent) {
+    goTo("helpdesk");
+    switchHelpTab("raise");
+    const f = $("#helpForm");
+    f.elements.cat.value = cat;
+    if (urgent) f.elements.urgent.checked = true;
+    setTimeout(() => { f.scrollIntoView({ behavior: "smooth", block: "center" }); f.elements.desc.focus({ preventScroll: true }); }, 400);
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-voter-help]")) { e.preventDefault(); openHelpWith("Voter registration (Form 6A)"); toast("Tell us where you are stuck – a volunteer will help with Form 6A"); }
+    if (e.target.closest("[data-emer-help]")) { e.preventDefault(); openHelpWith("Emergency abroad (24/7)", true); }
+  });
+
+  /* ---------- emergency directory ---------- */
+  const emerHref = (it) => (it.tel ? "tel:" + it.tel : it.wa ? "https://wa.me/" + it.wa : it.url || "#");
+  $("#emerGrid").innerHTML = EMERGENCY.map((g, i) => `<div class="emer-card" style="--i:${i}"><h4>${g.icon} ${esc(g.group)}</h4><ul>${g.items.map((it) =>
+    `<li>${it.help ? `<a href="#" data-emer-help>` : `<a href="${esc(emerHref(it))}" ${it.tel ? "" : 'target="_blank" rel="noopener"'}>`}<b>${esc(it.name)}</b><small>${esc(it.note)}</small><em>${esc(it.show)}</em></a></li>`).join("")}</ul></div>`).join("");
+  stagger($("#emerGrid"));
+  $("#emerLocal").innerHTML = LOCAL_EMERGENCY.map(([c, n]) => `<span><b>${esc(c)}</b> ${esc(n)}</span>`).join("");
+
+  /* ---------- Telugu associations directory ---------- */
+  let associations = [];
+  function renderAssociations() {
+    const q = ($("#assocSearch").value || "").trim().toLowerCase();
+    const list = associations.filter((a) => !q || `${a.name} ${a.country} ${a.city}`.toLowerCase().includes(q));
+    $("#assocList").innerHTML = list.length ? list.map((a, i) => `<article class="assoc" style="--i:${i}"><span class="assoc-ic">🤝</span><div><h4>${esc(a.name)}</h4><small>📍 ${esc(a.city)}, ${esc(a.country)}</small>
+      ${a.description ? `<p>${esc(a.description)}</p>` : ""}<div class="assoc-links">${a.website ? `<a href="${esc(a.website)}" target="_blank" rel="noopener">🌐 Website</a>` : ""}${a.email ? `<a href="mailto:${esc(a.email)}">✉️ Email</a>` : ""}</div></div></article>`).join("")
+      : `<p class="empty">${associations.length ? "No association found for this search." : "The directory is being built – suggest a Telugu association in your city!"}</p>`;
+    stagger($("#assocList"));
+  }
+  $("#assocSearch").addEventListener("input", renderAssociations);
+  async function loadAssociations() { try { associations = (await API.get("/associations")).associations; } catch {} renderAssociations(); }
+  renderAssociations();
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-suggest-assoc]")) return;
+    if (!API.online) { toast("Please try again when you are online"); return; }
+    openModal(`<h3 id="modalTitle">🤝 Suggest an association</h3><p class="muted">Our team checks every suggestion before it is shown.</p>
+      <form id="assocForm" class="stack">
+        <label>Association name<input name="name" required maxlength="120" placeholder="e.g. Telugu Association of Dallas"></label>
+        <div class="row2"><label>Country<input name="country" required maxlength="60"></label><label>City<input name="city" required maxlength="60"></label></div>
+        <div class="row2"><label>Website <small class="muted">(optional)</small><input name="website" type="url" placeholder="https://"></label><label>Email <small class="muted">(optional)</small><input name="email" type="email"></label></div>
+        <label>About <small class="muted">(optional)</small><textarea name="description" rows="2" maxlength="400"></textarea></label>
+        <label>Your name <small class="muted">(optional)</small><input name="submittedBy" maxlength="80" value="${esc(state.user ? state.user.name : "")}"></label>
+        <label class="check"><input type="checkbox" name="consent" required> <span>The details above are public information about the association.</span></label>
+        <button class="btn btn-primary btn-block">Send suggestion</button></form>`);
+    $("#assocForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      try { const r = await API.post("/associations", { ...Object.fromEntries(new FormData(ev.target)), consent: true }); closeModal(); toast("✅ " + r.message); }
+      catch (err) { toast(err.message); }
+    });
+  });
+
+  /* ---------- jobs & skills corner ---------- */
+  let jobs = [], jobKind = "all";
+  function renderJobs() {
+    $("#jobChips").innerHTML = [["all", "All"], ...Object.entries(JOB_KINDS)].map(([k, l]) => `<button class="chip ${jobKind === k ? "active" : ""}" data-job-kind="${k}">${esc(l)}</button>`).join("");
+    const list = jobs.filter((j) => jobKind === "all" || j.kind === jobKind);
+    const contactHref = (c) => (/^\S+@\S+\.\S+$/.test(c) ? "mailto:" + c : /^[+\d][\d\s()-]{6,}$/.test(c) ? "https://wa.me/" + c.replace(/[^\d]/g, "") : null);
+    $("#jobList").innerHTML = list.length ? list.map((j, i) => `<article class="job" style="--i:${i}"><span class="job-kind">${esc(JOB_KINDS[j.kind] || j.kind)}</span>
+      <h4>${esc(j.title)}</h4><small>${j.company ? esc(j.company) + " · " : ""}📍 ${esc([j.city, j.country].filter(Boolean).join(", "))}</small>
+      <p>${esc(j.description)}</p><div class="job-foot">${j.link ? `<a href="${esc(j.link)}" target="_blank" rel="noopener nofollow">Details ↗</a>` : ""}
+      ${contactHref(j.contact) ? `<a href="${esc(contactHref(j.contact))}" target="_blank" rel="noopener">Contact: ${esc(j.contact)}</a>` : `<span>Contact: ${esc(j.contact)}</span>`}</div></article>`).join("")
+      : `<p class="empty">No posts yet in this section. Members can share openings, referrals and mentoring offers here.</p>`;
+    stagger($("#jobList"));
+  }
+  $("#skillLinks").innerHTML = SKILL_LINKS.map((l, i) => `<a class="res" style="--i:${i}" href="${esc(l.url)}" target="_blank" rel="noopener"><span>${l.icon}</span><div><b>${esc(l.name)}</b><small>${esc(l.note)}</small></div><em>↗</em></a>`).join("");
+  stagger($("#skillLinks"));
+  $("#jobChips").addEventListener("click", (e) => { const c = e.target.closest("[data-job-kind]"); if (c) { jobKind = c.dataset.jobKind; renderJobs(); } });
+  async function loadJobs() { try { jobs = (await API.get("/jobs")).jobs; } catch {} renderJobs(); }
+  renderJobs();
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-post-job]")) return;
+    if (!API.online) { toast("Please try again when you are online"); return; }
+    if (!state.user) { toast("Please register or log in to share a job"); openRegister(); return; }
+    openModal(`<h3 id="modalTitle">💼 Share a job, referral or offer</h3><p class="muted">Posts are checked by our team and shown for 60 days. Never ask for money.</p>
+      <form id="jobForm" class="stack">
+        <label>Type<select name="kind" required>${Object.entries(JOB_KINDS).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join("")}</select></label>
+        <label>Title<input name="title" required maxlength="120" placeholder="e.g. Electricians needed – Dubai"></label>
+        <div class="row2"><label>Company <small class="muted">(optional)</small><input name="company" maxlength="120"></label><label>Country<input name="country" required maxlength="60" value="${esc(state.user.country || "")}"></label></div>
+        <label>City <small class="muted">(optional)</small><input name="city" maxlength="60" value="${esc(state.user.city || "")}"></label>
+        <label>Details<textarea name="description" rows="3" required minlength="10" maxlength="1000" placeholder="Role, experience needed, salary range, how to apply…"></textarea></label>
+        <div class="row2"><label>Link <small class="muted">(optional)</small><input name="link" type="url" placeholder="https://"></label><label>Contact (email / WhatsApp)<input name="contact" required maxlength="120" value="${esc(state.user.email || "")}"></label></div>
+        <button class="btn btn-primary btn-block">Send for review</button></form>`);
+    $("#jobForm").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      try { const r = await API.post("/jobs", Object.fromEntries(new FormData(ev.target))); closeModal(); toast("✅ " + r.message); }
+      catch (err) { toast(err.message); }
+    });
+  });
+
+  /* ---------- newsletter ---------- */
+  $("#newsForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!API.online) { toast("Please try again when you are online"); return; }
+    try { const r = await API.post("/newsletter", { email: e.target.elements.email.value, name: state.user ? state.user.name : "", country: state.user ? state.user.country : "", consent: true }); e.target.reset(); toast("📰 " + r.message); }
+    catch (err) { toast(err.message); }
+  });
+
+  /* ---------- Hall of Fame: real volunteers added by admins (no sample names) ---------- */
+  async function loadFame() {
+    let people = [];
+    try { people = API.online ? (await API.get("/hall-of-fame")).people : []; } catch {}
+    $("#fameTrack").innerHTML = people.length ? people.map((f, i) => `<div class="fame" style="--i:${i}"><div class="av" data-badge="${esc(f.badge || "🏆")}">${f.photo ? `<img src="${f.photo}" alt="">` : esc(f.name[0])}</div><span class="title">${esc(f.title)}</span><h4>${esc(f.name)}</h4><small>${esc(f.city || "")}</small><p>${esc(f.note || "")}</p></div>`).join("")
+      : `<p class="empty light">Our first Hall of Fame volunteers will be announced soon. Do your weekly tasks – you could be next! 🏆</p>`;
+  }
+  loadFame();
+
+  /* ---------- "Photo with Jagan Anna" frame ---------- */
+  function openPhotoFrame() {
+    openModal(`<h3 id="modalTitle">📸 Photo with Jagan Anna</h3><p class="muted">Add your photo – we place it next to Jagan Anna with the YSRCP NRI Wing frame. Your photo stays on your phone; nothing is uploaded.</p>
+      <canvas id="frameCanvas" width="1080" height="1080" class="frame-canvas"></canvas>
+      <div class="dash-actions"><button class="btn btn-ghost" data-frame-pick>📷 Add my photo</button><button class="btn btn-primary" data-frame-save disabled>⬇ Download</button><button class="btn btn-ghost" data-frame-share hidden>📤 Share</button></div>`);
+    const c = $("#frameCanvas"), x = c.getContext("2d");
+    let mine = null;
+    const jagan = new Image(); jagan.src = "images/jagan-cm-office.webp";
+    const cover = (img, dx, dy, dw, dh, fx = 0.5, fy = 0.35) => { // draw like CSS object-fit: cover
+      const r = Math.max(dw / img.width, dh / img.height), sw = dw / r, sh = dh / r;
+      x.drawImage(img, (img.width - sw) * fx, (img.height - sh) * fy, sw, sh, dx, dy, dw, dh);
+    };
+    const round = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+    function draw() {
+      const g = x.createLinearGradient(0, 0, 1080, 1080); g.addColorStop(0, "#0b3a8c"); g.addColorStop(0.55, "#1652c4"); g.addColorStop(1, "#0f9d58");
+      x.fillStyle = g; x.fillRect(0, 0, 1080, 1080);
+      x.fillStyle = "rgba(255,255,255,.07)"; x.beginPath(); x.arc(980, 120, 300, 0, 7); x.fill();
+      x.fillStyle = "#fff"; x.font = "800 64px Outfit, sans-serif"; x.textAlign = "center"; x.fillText("YSRCP NRI Wing", 540, 120);
+      x.font = "500 34px Outfit, sans-serif"; x.fillStyle = "rgba(255,255,255,.85)"; x.fillText("Global Unity, Local Impact", 540, 170);
+      [[90, mine], [570, jagan]].forEach(([X, img], k) => {
+        x.save(); round(X, 250, 420, 520, 36); x.fillStyle = "rgba(255,255,255,.15)"; x.fill(); x.clip();
+        if (img && img.complete && img.naturalWidth) cover(img, X, 250, 420, 520, k ? 0.52 : 0.5, k ? 0.38 : 0.3);
+        else { x.fillStyle = "rgba(255,255,255,.8)"; x.font = "600 40px Outfit, sans-serif"; x.fillText("Your photo", X + 210, 520); }
+        x.restore(); round(X, 250, 420, 520, 36); x.strokeStyle = "#fff"; x.lineWidth = 8; x.stroke();
+      });
+      x.fillStyle = "#fff"; x.font = "700 40px Outfit, sans-serif";
+      x.fillText(state.user ? state.user.name : "Proud NRI supporter", 300, 830); x.fillText("Y.S. Jagan Mohan Reddy", 780, 830);
+      x.font = "500 30px Outfit, sans-serif"; x.fillStyle = "rgba(255,255,255,.85)";
+      x.fillText(state.user ? `${state.user.city}, ${state.user.country}` : "", 300, 875); x.fillText("President, YSR Congress Party", 780, 875);
+      x.font = "700 38px Outfit, sans-serif"; x.fillStyle = "#f5b800"; x.fillText("#YSRCPNRI  ·  Together for Andhra Pradesh", 540, 990);
+      x.textAlign = "left";
+    }
+    jagan.onload = draw; draw();
+    const modalEl = $("#modalContent");
+    modalEl.addEventListener("click", async (e) => {
+      if (e.target.closest("[data-frame-pick]")) {
+        const f = await choosePhotoSource({ title: "Your photo for the frame" });
+        if (!f || !String(f.type).startsWith("image/")) return;
+        const url = URL.createObjectURL(f), img = new Image();
+        img.onload = () => { mine = img; draw(); $("[data-frame-save]", modalEl).disabled = false; $("[data-frame-share]", modalEl).hidden = !(navigator.canShare); };
+        img.src = url;
+      }
+      if (e.target.closest("[data-frame-save]")) {
+        const a = document.createElement("a"); a.download = "photo-with-jagan-anna.png"; a.href = c.toDataURL("image/png"); a.click();
+      }
+      if (e.target.closest("[data-frame-share]")) {
+        c.toBlob(async (blob) => {
+          const file = new File([blob], "photo-with-jagan-anna.png", { type: "image/png" });
+          try { if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "With Jagan Anna! #YSRCPNRI" }); else toast("Sharing is not supported here – please download instead"); } catch {}
+        });
+      }
+    });
+  }
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-photo-frame]")) { e.preventDefault(); openPhotoFrame(); } });
+
+  /* ---------- privacy settings in My Dashboard ---------- */
+  async function savePrivacy(patch) {
+    try { const r = await API.patch("/me", patch); Object.assign(state.user, { showPhoto: r.member.showPhoto, notifyEmail: r.member.notifyEmail }); store.set("user", state.user); toast("Saved"); }
+    catch (err) { toast(err.message); }
+  }
+  async function downloadMyData() {
+    try {
+      const res = await fetch("/api/me/export", { headers: { Authorization: "Bearer " + API.getToken() } });
+      if (!res.ok) throw new Error("Could not download – please log in again.");
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a"); a.href = url; a.download = `my-ysrcp-nri-data-${state.user.no}.json`; a.click(); URL.revokeObjectURL(url);
+    } catch (err) { toast(err.message); }
+  }
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("[data-pref-photo]")) savePrivacy({ showPhoto: e.target.checked });
+    if (e.target.matches("[data-pref-email]")) savePrivacy({ notifyEmail: e.target.checked });
+  });
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-export-me]")) { e.preventDefault(); downloadMyData(); } });
+
+  /* ---------- install as an app (PWA) ---------- */
+  let installEvt = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; $("#installBtn").hidden = false; });
+  $("#installBtn").addEventListener("click", async () => {
+    if (!installEvt) return;
+    installEvt.prompt(); await installEvt.userChoice.catch(() => {}); installEvt = null; $("#installBtn").hidden = true;
+  });
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
 
   /* ---------- pages (instead of one long page) ---------- */
   // each page = the sections it shows; any other #id opens the page that contains it
   const PAGES = {
     home: ["home", "start", "ctaBand"],
     about: ["about", "leadership", "channels"],
-    chapters: ["chapters"],
+    chapters: ["chapters", "associations"],
     events: ["events", "onair"],
-    helpdesk: ["helpdesk"],
+    helpdesk: ["helpdesk", "voter", "emergency"],
+    jobs: ["jobs"],
     volunteer: ["volunteer"],
     achievements: ["achievements"],
     mark: ["mark", "pillars"],
@@ -1540,6 +1912,8 @@
       ALL_SECTIONS.forEach((s) => (s.hidden = !PAGES[page].includes(s.id)));
       currentPage = page;
       document.body.dataset.page = page;
+      const titles = { home: "", about: "About", chapters: "My City", events: "Events", helpdesk: "Help Desk", volunteer: "Volunteer", achievements: "Achievements", mark: "JaganAnna Mark", gallery: "Gallery", meet: "Meet Jagan Sir", jobs: "Jobs & Skills" };
+      document.title = (titles[page] ? titles[page] + " | " : "") + "YSRCP NRI Wing | Global Unity, Local Impact";
       if (page === "chapters") setTimeout(initWorldMap, 0);
       if (page === "meet") prefillMeet();
       if (page === "helpdesk") {

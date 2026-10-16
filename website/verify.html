@@ -5,58 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Verify Member | YSRCP NRI Wing</title>
+<link rel="icon" href="images/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root { --blue: #0b3a8c; --blue-2: #1652c4; --green: #0f9d58; --ink: #0f1b33; --ink-2: #4a5878; --red: #c62828; }
   * { box-sizing: border-box; }
   body { margin: 0; min-height: 100vh; font-family: Outfit, system-ui, sans-serif; color: var(--ink);
-    background: linear-gradient(160deg, #071a3d, var(--blue) 55%, var(--green)); display: grid; place-items: center; padding: 24px 16px; }
-  .card { width: min(420px, 100%); background: #fff; border-radius: 24px; padding: 28px 24px; text-align: center; box-shadow: 0 30px 60px -25px rgba(0,0,0,.6); }
-  .brand { font-weight: 800; color: var(--blue); letter-spacing: .02em; }
-  .brand small { display: block; font-weight: 400; color: var(--ink-2); font-size: .8rem; }
-  .badge { display: inline-flex; align-items: center; gap: 8px; margin: 22px 0 18px; padding: 10px 18px; border-radius: 30px; font-weight: 800; font-size: 1rem; }
-  .ok { background: #e7f6ee; color: var(--green); }
-  .bad { background: #fdecec; color: var(--red); }
-  .photo { width: 112px; height: 112px; margin: 0 auto 12px; border-radius: 20px; overflow: hidden; border: 3px solid #e3e9f4; background: linear-gradient(135deg, var(--blue-2), var(--green));
-    display: grid; place-items: center; color: #fff; font-size: 2.4rem; font-weight: 800; }
-  .photo img { width: 100%; height: 100%; object-fit: cover; }
-  h1 { margin: 0; font-size: 1.5rem; }
-  .muted { color: var(--ink-2); }
-  dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; text-align: left; margin: 20px 0 0; padding: 16px; border-radius: 16px; background: #f3f6fc; }
-  dt { color: var(--ink-2); font-size: .85rem; }
-  dd { margin: 0; font-weight: 600; }
-  .mono { font-family: ui-monospace, monospace; letter-spacing: .06em; }
-  a.home { display: inline-block; margin-top: 22px; color: var(--blue); font-weight: 600; text-decoration: none; }
+    background: radial-gradient(900px 500px at 20% 0%, rgba(22,82,196,.35), transparent 60%), linear-gradient(160deg, #071a3d, #0b3a8c 60%, #0f6d4a);
+    display: grid; place-items: center; padding: 28px 16px; }
+  .wrap { width: min(560px, 100%); }
+  .top { text-align: center; color: #fff; margin-bottom: 16px; }
+  .top b { font-size: 1.05rem; letter-spacing: .02em; }
+  .top small { display: block; color: #b7c6e6; }
+
+  /* the card – same layout as the downloaded card (1012 × 638) */
+  .card { position: relative; width: 100%; aspect-ratio: 1012 / 638; border-radius: 4%/6.3%; overflow: hidden; color: #fff; container-type: inline-size;
+    background: linear-gradient(135deg, #0b3a8c, #1652c4 50%, #0f9d58); box-shadow: 0 30px 60px -25px rgba(0,0,0,.7); animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+  .card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 45%, transparent 60%); transform: translateX(-100%); animation: shine 3.5s ease-in-out 1s infinite; }
+  .deco { position: absolute; left: 70.36%; top: -25.08%; width: 43.48%; height: 68.97%; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .brand { position: absolute; left: 5.93%; top: 6.4%; font-weight: 800; font-size: 3.95cqw; line-height: 1.1; }
+  .brand small { display: block; font-weight: 500; font-size: 2.37cqw; color: rgba(255,255,255,.85); margin-top: .9cqw; }
+  .photo { position: absolute; left: 5.93%; top: 29.78%; width: 14.82%; height: 23.51%; border-radius: 2.2cqw; border: .6cqw solid rgba(255,255,255,.9); overflow: hidden;
+    background: rgba(255,255,255,.14); display: grid; place-items: center; font-size: 6cqw; font-weight: 800; }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .leader { position: absolute; left: 77.08%; top: 20.06%; width: 12.25%; height: 19.44%; border-radius: 1.8cqw; border: .5cqw solid rgba(255,255,255,.9);
+    background: #fff url("images/jagan-cm-office.webp") 52.5% 38% / 300% auto no-repeat; }
+  .leader-cap { position: absolute; left: 72%; width: 22.4%; top: 41.5%; text-align: center; font-weight: 600; font-size: 2.17cqw; }
+  .name { position: absolute; left: 5.93%; top: 57.5%; right: 30%; font-weight: 700; font-size: 5.53cqw; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .place { position: absolute; left: 5.93%; top: 69.2%; right: 30%; font-size: 2.77cqw; color: rgba(255,255,255,.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .no { position: absolute; left: 5.93%; top: 80%; font: 600 3.16cqw ui-monospace, monospace; letter-spacing: .08em; }
+  /* where the QR is on the card: the verified stamp */
+  .stamp { position: absolute; left: 72.33%; top: 56.11%; width: 21.74%; height: 34.48%; border-radius: 2cqw; background: #fff; color: var(--green);
+    display: grid; place-items: center; align-content: center; gap: .6cqw; text-align: center; animation: pop .5s .4s cubic-bezier(.2,.8,.2,1) both; }
+  .stamp i { width: 8cqw; height: 8cqw; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 5cqw; color: #fff; background: var(--green); box-shadow: 0 0 0 1.2cqw rgba(15,157,88,.15); }
+  .stamp b { font-size: 2.4cqw; letter-spacing: .12em; }
+  .stamp small { font-size: 1.7cqw; color: var(--ink-2); }
+  .card.bad { background: linear-gradient(135deg, #5b1a1a, #8a1c1c 55%, #3d2a2a); }
+  .card.bad .stamp { color: var(--red); }
+  .card.bad .stamp i { background: var(--red); box-shadow: 0 0 0 1.2cqw rgba(198,40,40,.15); }
+
+  .info { margin-top: 16px; background: #fff; border-radius: 18px; padding: 16px 18px; box-shadow: 0 20px 40px -25px rgba(0,0,0,.6); }
+  .info dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; }
+  .info dt { color: var(--ink-2); font-size: .85rem; }
+  .info dd { margin: 0; font-weight: 600; }
+  .info p { margin: 12px 0 0; color: var(--ink-2); font-size: .85rem; }
+  .home { display: block; text-align: center; margin-top: 16px; color: #fff; font-weight: 600; text-decoration: none; }
+  .loading { color: #fff; text-align: center; padding: 60px 0; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.98); } }
+  @keyframes pop { from { opacity: 0; transform: scale(.7); } }
+  @keyframes shine { 0%, 60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  @media (prefers-reduced-motion: reduce) { .card, .stamp { animation: none; } .card::after { display: none; } }
 </style>
 </head>
 <body>
-<main class="card" id="app">
-  <div class="brand">YSRCP NRI Wing<small>Member card check</small></div>
-  <p class="muted" style="margin-top:28px">Checking…</p>
+<main class="wrap" id="app">
+  <div class="top"><b>YSRCP NRI Wing</b><small>Member card check</small></div>
+  <p class="loading">Checking…</p>
 </main>
 <script>
 (() => {
   const app = document.getElementById("app");
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const no = (new URLSearchParams(location.search).get("m") || "").trim().toUpperCase();
-  const brand = `<div class="brand">YSRCP NRI Wing<small>Member card check</small></div>`;
-  const home = `<a class="home" href="/">Visit the YSRCP NRI Wing website →</a>`;
+  const top = `<div class="top"><b>YSRCP NRI Wing</b><small>Member card check</small></div>`;
   const since = (d) => { if (!d) return ""; const x = new Date(d.includes("T") ? d : d.replace(" ", "T") + "Z"); return isNaN(x) ? "" : x.toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" }); };
-  const fail = (msg) => { app.innerHTML = `${brand}<div class="badge bad">❌ Not verified</div><p class="muted">${esc(msg)}</p>${no ? `<p class="mono">${esc(no)}</p>` : ""}${home}`; };
+  const now = () => new Date().toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const card = (d, ok) => `
+    <div class="card ${ok ? "" : "bad"}" role="img" aria-label="${ok ? "Verified YSRCP NRI Wing member card" : "Card not verified"}">
+      <span class="deco"></span>
+      <div class="brand">YSRCP NRI Wing<small>Global Unity, Local Impact</small></div>
+      ${ok ? `<div class="photo">${d.photo ? `<img src="${d.photo}" alt="">` : esc((d.name || "?")[0])}</div>` : ""}
+      <span class="leader" aria-hidden="true"></span><span class="leader-cap">YS Jagan</span>
+      <div class="name">${ok ? esc(d.name) : "Not verified"}</div>
+      <div class="place">${ok ? esc([d.city, d.country].filter(Boolean).join(", ")) + (d.district ? " · " + esc(d.district) : "") : "No member found with this number"}</div>
+      <div class="no">${esc(no || "—")}</div>
+      <div class="stamp"><i>${ok ? "✓" : "✕"}</i><b>${ok ? "VERIFIED" : "NOT FOUND"}</b><small>${ok ? "Member" : "Ask for the card"}</small></div>
+    </div>`;
+  const fail = (msg) => {
+    app.innerHTML = top + card({}, false) + `<div class="info"><p style="margin:0"><b style="color:#c62828">❌ Not verified.</b> ${esc(msg)}</p></div><a class="home" href="/">Visit the YSRCP NRI Wing website →</a>`;
+  };
 
   if (!/^YSRNRI-\d{4}-\d{5}$/.test(no)) return fail("This QR code does not contain a valid member number.");
   fetch("/api/verify/" + encodeURIComponent(no))
     .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
     .then(({ ok, d }) => {
       if (!ok || !d.valid) return fail("No member found with this number. Please ask the member to show their card from the website.");
-      app.innerHTML = `${brand}
-        <div class="badge ok">✅ Verified member</div>
-        <div class="photo">${d.photo ? `<img src="${d.photo}" alt="">` : esc(d.name[0] || "?")}</div>
-        <h1>${esc(d.name)}</h1>
-        <p class="muted" style="margin:4px 0 0">${esc(d.city)}, ${esc(d.country)}</p>
-        <dl><dt>Member no.</dt><dd class="mono">${esc(d.memberNo)}</dd><dt>Member since</dt><dd>${esc(since(d.since))}</dd></dl>
-        ${home}`;
+      app.innerHTML = top + card(d, true) + `
+        <div class="info"><dl>
+          <dt>Status</dt><dd style="color:#0f9d58">✅ Active member</dd>
+          <dt>Member since</dt><dd>${esc(since(d.since))}</dd>
+          <dt>Checked</dt><dd>${esc(now())}</dd></dl>
+          <p>Only the first name and initial are shown, to protect the member's privacy.</p></div>
+        <a class="home" href="/">Visit the YSRCP NRI Wing website →</a>`;
     })
     .catch(() => fail("Could not check right now – please try again in a moment."));
 })();
