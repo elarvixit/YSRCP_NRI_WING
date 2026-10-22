@@ -1523,3 +1523,6 @@ body.lang-te { font-family: "Noto Sans Telugu", Outfit, system-ui, sans-serif; }
 p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88rem; }
 .link-btn { background: none; border: 0; padding: 0; color: #1652c4; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline; }
 .otp-box .code-input::placeholder { letter-spacing: normal; font-size: 1rem; }
+
+/* Instagram icon: brand gradient on hover */
+.socials a.ig:hover { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
