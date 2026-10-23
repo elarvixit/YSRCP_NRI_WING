@@ -1247,7 +1247,7 @@ body:not([data-page="home"]) main > section:first-of-type:not([hidden]) { paddin
 .plane-arm.a2 b { left: calc(var(--r) * 1.18); transform: translate(-50%, -50%) rotate(-90deg); color: #ffd84d; text-shadow: 0 0 12px rgba(255,216,77,.9); }
 .plane-arm.a3 { animation-duration: 22s; animation-delay: -14s; }
 .plane-arm.a3 b { left: calc(var(--r) * .82); font-size: 18px; }
-.ho-tag { position: absolute; left: calc(var(--cx) + var(--r) * cos(var(--a))); top: calc(var(--cy) + var(--r) * sin(var(--a))); transform: translate(-50%, -50%); z-index: 1; }
+.ho-tag { position: absolute; left: calc(var(--cx) + var(--r) * cos(var(--a))); top: max(var(--ymin, -999px), calc(var(--cy) + var(--r) * sin(var(--a)))); transform: translate(-50%, -50%); z-index: 1; }
 .ho-tag > span { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 7px; border-radius: 30px; font-size: .8rem; font-weight: 700; color: #fff; white-space: nowrap; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); backdrop-filter: blur(8px); box-shadow: 0 10px 24px -12px rgba(0,0,0,.5); animation: floaty 5s ease-in-out infinite; animation-delay: var(--d); }
 .ho-tag img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
 .ho-waves { position: absolute; left: 0; bottom: -2px; width: 200%; height: 120px; animation: waveMove 22s linear infinite; }
@@ -1531,7 +1531,9 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .collage.cl-one .cl-main { grid-row: 1; }
 
 /* 2 photos: keep them smaller */
-.hero.has-collage .hero-visual:has(.cl-one) { height: 380px; align-self: center; }
+.hero.has-collage .hero-visual:has(.cl-one) { height: 380px; }
+/* photos stay in one place while the banner text changes (so the circle stays centred on them) */
+.hero.has-collage .hero-visual { align-self: start; margin-top: 40px; }
 .collage.cl-one { inset: 10px 6% 10px 12%; }
 .collage.cl-one .cl-a { align-self: center; aspect-ratio: 3 / 4; }
 

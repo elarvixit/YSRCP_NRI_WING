@@ -286,6 +286,15 @@ const CHAPTERS = [
   { region: "Africa", country: "South Africa", iso: "za", city: "Johannesburg", tz: "Africa/Johannesburg", members: 260, x: 54, y: 75 }
 ];
 
+/* ---------- Countries shown moving around the home banner circle (30) ---------- */
+const ORBIT_COUNTRIES = [
+  ["us", "USA"], ["gb", "United Kingdom"], ["ae", "UAE"], ["ca", "Canada"], ["au", "Australia"], ["sg", "Singapore"],
+  ["qa", "Qatar"], ["kw", "Kuwait"], ["sa", "Saudi Arabia"], ["om", "Oman"], ["bh", "Bahrain"], ["de", "Germany"],
+  ["ie", "Ireland"], ["nl", "Netherlands"], ["nz", "New Zealand"], ["my", "Malaysia"], ["jp", "Japan"], ["za", "South Africa"],
+  ["fr", "France"], ["it", "Italy"], ["ch", "Switzerland"], ["se", "Sweden"], ["be", "Belgium"], ["pl", "Poland"],
+  ["dk", "Denmark"], ["fi", "Finland"], ["hk", "Hong Kong"], ["kr", "South Korea"], ["th", "Thailand"], ["mu", "Mauritius"]
+];
+
 /* ---------- Chapter city coordinates (latitude, longitude) for the world map ---------- */
 const CITY_COORDS = {
   "Dallas": [32.78, -96.80], "San Francisco Bay Area": [37.55, -122.0], "New Jersey": [40.06, -74.41], "Chicago": [41.88, -87.63],
