@@ -1526,3 +1526,7 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 
 /* Instagram icon: brand gradient on hover */
 .socials a.ig:hover { background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285aeb 90%); }
+
+/* collage with 3 photos: big photo + 2 on the right */
+.collage.cl-two { grid-template-rows: repeat(2, 1fr); }
+.collage.cl-two .cl-main { grid-row: 1 / 3; }

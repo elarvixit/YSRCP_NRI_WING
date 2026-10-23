@@ -68,8 +68,7 @@ const IMG = {
   collage: [
     { src: SITE + "/Slider/msimg1.jpeg", size: "149% auto", pos: "30% 28%" }, // cropped: corner logo and top YSR photo hidden
     { src: "images/jagan-cm-office.webp", pos: "50% 35%" },
-    { src: "images/aluru-with-jagan.jpg", pos: "50% 14%" },
-    { src: SITE + "/Political_Journey/2025.jpeg", pos: "50% 30%" }
+    { src: "images/aluru-with-jagan.jpg", pos: "50% 14%" }
   ],
   leader: { ...SITE_PHOTOS.worldMap, crop: { size: "cover", pos: "50% 0%" } }, // home banner card
   events: { src: SITE + "/Slider/simg4.png", cap: "Advantage Andhra Pradesh – Global Investors Summit", credit: SITE_CREDIT }, // wide event photo above the calendar
