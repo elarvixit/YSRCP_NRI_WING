@@ -171,7 +171,7 @@
     const items = NEWS.map((it) => `<a class="nb-item" href="${esc(it.url)}" target="_blank" rel="noopener"><span class="nb-date">${esc(it.date)}</span><span class="nb-text">${esc(it.text)}</span><span class="nb-src">${esc(it.source)}</span></a><span class="nb-sep" aria-hidden="true">◆</span>`).join("");
     track.innerHTML = items + items; // doubled for a seamless loop
     // constant reading speed (~70px/s) whatever the number of headlines
-    const setSpeed = () => track.style.setProperty("--dur", Math.max(30, track.scrollWidth / 2 / 70) + "s");
+    const setSpeed = () => track.style.setProperty("--dur", Math.max(50, track.scrollWidth / 2 / 40) + "s");
     setSpeed(); addEventListener("load", setSpeed);
   })();
 
