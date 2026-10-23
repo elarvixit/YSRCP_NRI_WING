@@ -138,7 +138,8 @@ const HERO_SLIDES = [
 // one photo per year, from the wing's current website
 const jp = (file, year) => ({ src: SITE + "/Political_Journey/" + file, cap: "Y.S. Jagan Mohan Reddy · " + year, credit: SITE_CREDIT });
 const JOURNEY = [
-  { year: 2011, title: "The birth of a people's movement", photo: jp("1y.jpg", 2011),
+  { year: 2011, title: "The birth of a people's movement",
+    photo: { src: C + "6/6b/Ys-jagan1231.jpg", cap: "Y.S. Jagan Mohan Reddy at his office · 4 March 2011", credit: "Kenneth Uday Raj · Wikimedia Commons · CC0" },
     points: [
       "September 2009: Chief Minister Dr. Y.S. Rajasekhara Reddy dies in a helicopter crash. The Congress leadership refuses to make his son, then Kadapa MP Y.S. Jagan Mohan Reddy, the Chief Minister.",
       "April 2010: Jagan begins the Odarpu Yatra (condolence tour) in West Godavari and Khammam districts, refusing a Congress Working Committee order to call it off.",
