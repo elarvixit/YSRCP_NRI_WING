@@ -443,9 +443,10 @@
     const art = $("#journeyArt"), ph = $("#jPhoto");
     art.classList.toggle("has-photo", !!j.photo);
     ph.style.backgroundImage = j.photo ? `url("${j.photo.src}")` : "";
+    ph.style.backgroundPosition = (j.photo && j.photo.pos) || "";
     ph.classList.remove("swap"); void ph.offsetWidth; ph.classList.add("swap");
     $("#jCap").innerHTML = j.photo ? `${esc(j.photo.cap)}<small>Photo: ${esc(j.photo.credit)}</small>` : "";
-    $("#journeyBody").innerHTML = `<h3>${j.year}: ${esc(j.title)}</h3><ul>${j.points.map((p, k) => `<li style="animation-delay:${k * 0.1}s">${esc(p)}</li>`).join("")}</ul><p class="j-src">Source: <a href="https://en.wikipedia.org/wiki/YSR_Congress_Party" target="_blank" rel="noopener">Wikipedia – YSR Congress Party</a>${j.year === 2017 || j.year === 2018 ? ' · <a href="https://en.wikipedia.org/wiki/Praja_Sankalpa_Yatra" target="_blank" rel="noopener">Praja Sankalpa Yatra</a>' : ""}</p>`;
+    $("#journeyBody").innerHTML = `<h3>${j.year}: ${esc(j.title)}</h3><ul>${j.points.map((p, k) => `<li style="animation-delay:${k * 0.1}s">${esc(p)}</li>`).join("")}</ul><p class="j-src">Source: <a href="https://en.wikipedia.org/wiki/YSR_Congress_Party" target="_blank" rel="noopener">Wikipedia – YSR Congress Party</a>${j.year >= 2020 ? " · Government of Andhra Pradesh and news reports" : ""}${j.year === 2017 || j.year === 2018 ? ' · <a href="https://en.wikipedia.org/wiki/Praja_Sankalpa_Yatra" target="_blank" rel="noopener">Praja Sankalpa Yatra</a>' : ""}</p>`;
   }
   // each year stays 2 minutes (time to read); pauses on hover or when the section is off screen
   const YEAR_MS = 120000, jProg = $("#jProg"), jLeft = $("#jLeft"), jCard = $(".journey-card");
