@@ -1543,3 +1543,6 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .top-search .btn { flex: none; }
 .top-search-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .88rem; color: #b9cbf0; }
 .footer .install-btn { margin-top: 14px; }
+/* poster tile: soft blue → green background instead of plain white */
+.cl-main { background: linear-gradient(160deg, #cfe0ff 0%, #e6f0ff 45%, #d3f5e2 100%); }
+.cl-main span { mix-blend-mode: multiply; }
