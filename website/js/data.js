@@ -415,7 +415,7 @@ const VIDEOS = [
 const G = "images/nri-meets/";
 const NRI2NRI = "https://nri2nri.com/wp-content/uploads/2026/07/";
 const GALLERY = [
-  { src: "images/aluru-with-jagan.jpg", cap: "Aluru Sambasiva Reddy with Y.S. Jagan Mohan Reddy", credit: "YSRCP NRI Wing", cat: "Jagan sir & Samba sir" },
+  { src: "images/aluru-with-jagan.jpg", size: "cover", pos: "55% 10%", cap: "YSRCP NRI Wing President Aluru Sambasiva Reddy with Y.S. Jagan Mohan Reddy", credit: "YSRCP NRI Wing", cat: "Jagan sir & Samba sir" },
   { src: G + "grid-26.webp", size: "520.5% auto", pos: "98.7% 5.8%", cap: "NRI leaders greet Jagan sir with a bouquet", credit: "YSRCP NRI Wing", cat: "NRIs meet Jagan sir" },
   { src: G + "grid-28.webp", size: "415.2% auto", pos: "67.4% 4.4%", cap: "A portrait gift for Jagan sir from NRI supporters", credit: "YSRCP NRI Wing", cat: "NRIs meet Jagan sir" },
   { src: G + "grid-29.webp", size: "511.5% auto", pos: "0.0% 5.5%", cap: "Aluru Sambasiva Reddy's NRI tour – Sydney, Auckland, Singapore", credit: "YSRCP NRI Wing", cat: "NRI events" },
