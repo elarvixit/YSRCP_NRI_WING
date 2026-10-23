@@ -261,13 +261,13 @@
     // all our cities move along the orbit one by one, like train coaches
     const ALL_TAGS = ORBIT_COUNTRIES;
     const TAGS = ALL_TAGS.slice(0, 8);
-    const ANG = [-130, -110, -90, -70, -50, -30, -130, -110];
+    const ANG = [45, 15, -15]; // starting spots on the right side (between 5 and 2 o clock); the rest start hidden
     box.innerHTML = `
       <div class="ho-glow"></div>
       <div class="ho-orbit" id="hoOrbit">
         <i class="ring r1"></i><i class="ring r2"></i><i class="ring r3"></i>
         <span class="plane-arm a1"><b>✈</b></span><span class="plane-arm a2"><b>✈</b></span><span class="plane-arm a3"><b>✈</b></span>
-        ${TAGS.map(([iso, city], i) => `<span class="ho-tag" style="--a:${ANG[i]}deg;--d:${(i * 0.7).toFixed(1)}s"><span><img src="https://flagcdn.com/w40/${iso}.png" alt="">${city}</span></span>`).join("")}
+        ${TAGS.map(([iso, city], i) => `<span class="ho-tag" style="--a:${ANG[i] ?? 0}deg;--d:${(i * 0.7).toFixed(1)}s${i >= ANG.length ? ";opacity:0" : ""}"><span><img src="https://flagcdn.com/w40/${iso}.png" alt="">${city}</span></span>`).join("")}
       </div>
       <svg class="ho-waves" viewBox="0 0 2880 160" preserveAspectRatio="none" aria-hidden="true">
         <path class="w1" d="M0 80 C240 30 480 130 720 80 S1200 30 1440 80 S1920 130 2160 80 S2640 30 2880 80 V160 H0Z"/>
@@ -283,45 +283,33 @@
       const r = vr ? Math.max(vr.width, vr.height) / 2 + 46 : Math.min(hr.width, hr.height) * 0.42;
       o.style.setProperty("--cx", cx + "px"); o.style.setProperty("--cy", cy + "px"); o.style.setProperty("--r", r + "px");
       o.style.setProperty("--ymin", "32px"); // tags never go above the top of the banner
-      // tags may sit between the end of the text (left) and the screen edge (right); angles on the upper half of the circle
-      const tx = $(".hero h1"), textRight = tx ? tx.parentElement.getBoundingClientRect().right - hr.left : 0;
-      const deg = (k) => Math.acos(Math.max(-1, Math.min(1, k))) * 180 / Math.PI;
-      arc.start = -deg((textRight + 95 - cx) / r);
-      arc.end = Math.min(-8, -deg((hr.width - 95 - cx) / r));
-      if (arc.end - arc.start < 60) { arc.start = -150; arc.end = -30; }
-      // no room between the text and the photos on small screens – hide the tags there
-      arc.n = hr.width < 1200 ? 0 : Math.max(3, Math.min(TAGS.length, Math.floor((arc.end - arc.start) * Math.PI / 180 * r / 165)));
-      const cr = $(".collage") && $(".collage").getBoundingClientRect();
-      Object.assign(arc, { cx, cy, r, col: cr ? { l: cr.left - hr.left - 10, t: cr.top - hr.top - 10, r: cr.right - hr.left + 10, b: cr.bottom - hr.top + 10 } : null });
+      // like a clock: tags appear at 5 o'clock and go up the right side; they disappear at 2 o'clock
+      // (clock hour h = angle h * 30 - 90 degrees; 3 o'clock = 0)
+      arc.n = hr.width < 1200 ? 0 : Math.max(2, Math.min(4, Math.floor((arc.start - arc.end) * Math.PI / 180 * r / 140)));
+      Object.assign(arc, { cx, cy, r, w: hr.width });
     };
-    const arc = { start: -135, end: -30, n: 4, cx: 0, cy: 0, r: 0, col: null };
-    // a point on the circle, moved outward if the tag would touch the photos, and never above the banner top
+    const arc = { start: 5 * 30 - 90, end: 2 * 30 - 90, n: 3, cx: 0, cy: 0, r: 0, w: 0 };
+    // a point on the circle, kept inside the screen and below the top of the banner
     const spot = (el, deg) => {
-      const a = deg * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a), hw = el.firstElementChild.offsetWidth / 2 + 4, hh = 20;
-      let d = arc.r, x, y;
-      for (let i = 0; i < 40; i++) {
-        x = arc.cx + ux * d; y = Math.max(32, arc.cy + uy * d);
-        const c = arc.col;
-        if (!c || x + hw < c.l || x - hw > c.r || y + hh < c.t || y - hh > c.b) break;
-        d += 4;
-      }
+      const a = deg * Math.PI / 180, hw = el.firstElementChild.offsetWidth / 2;
+      const x = Math.min(arc.w - hw - 14, arc.cx + Math.cos(a) * arc.r), y = Math.max(32, arc.cy + Math.sin(a) * arc.r);
       el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
     };
     placeOrbit();
-    // the city tags travel slowly along the circle; at the end a city fades out and the next one comes in at the start
+    // the country tags travel slowly along the circle; at 2 o'clock a country fades out and the next one comes in at 5 o'clock
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
       const SPEED = 4; // degrees per second
       const tags = $$(".ho-tag", box), last = tags.map(() => 0);
       let next = TAGS.length, move = 0, prev = null;
       const step = (now) => {
         move += (prev === null ? 0 : Math.min(now - prev, 100)) / 1000 * SPEED; prev = now;
-        const SPAN = arc.end - arc.start, GAP = SPAN / arc.n;
+        const SPAN = arc.start - arc.end, GAP = SPAN / arc.n;
         tags.forEach((el, k) => {
           if (k >= arc.n) { el.style.opacity = 0; return; }
           const p = (move + k * GAP) % SPAN;
           if (p < last[k]) { const [iso, name] = ALL_TAGS[next++ % ALL_TAGS.length]; el.firstElementChild.innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(name)}`; }
           last[k] = p;
-          spot(el, arc.start + p);
+          spot(el, arc.start - p); // counter-clockwise: 5 → 4 → 3 → 2 o'clock
           el.style.opacity = Math.max(0, Math.min(1, p / 14, (SPAN - p) / 14)).toFixed(2);
         });
         requestAnimationFrame(step);
