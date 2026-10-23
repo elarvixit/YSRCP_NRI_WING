@@ -132,6 +132,7 @@ const HERO_SLIDES = [
     title: { en: "Join hands with Jagan Anna – <em>serve Andhra Pradesh from anywhere</em>", te: "జగనన్నతో చేయి కలపండి – <em>ఎక్కడ ఉన్నా ఆంధ్రప్రదేశ్‌కు సేవ చేయండి</em>" },
     text: { en: "Living abroad, you can still make a difference at home. Each week we share simple volunteer tasks – spread the party's message, call families in your home constituency or join a city meet – and every task earns points, badges and a place on our Achievements wall.",
             te: "విదేశాల్లో ఉన్నా సొంత ఊరిలో మార్పు తీసుకురావచ్చు. ప్రతి వారం సులభమైన సేవా పనులు – పార్టీ సందేశాన్ని పంచుకోండి, మీ నియోజకవర్గంలోని కుటుంబాలకు ఫోన్ చేయండి లేదా చాప్టర్ మీట్‌లో పాల్గొనండి. ప్రతి పనికి పాయింట్లు, బ్యాడ్జ్‌లు." },
+    points: { en: ["Help families in your home district", "Join meets in your city", "Serve from anywhere in the world"], te: ["మీ సొంత జిల్లాలో కుటుంబాలకు సహాయం", "మీ నగరంలో మీటింగ్‌లలో పాల్గొనండి", "ప్రపంచంలో ఎక్కడి నుంచైనా సేవ"] },
     theme: "c" }
 ];
 
