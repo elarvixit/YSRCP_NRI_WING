@@ -378,7 +378,7 @@
   if (IMG.collage && IMG.collage.length >= 2) {
     hero.classList.add("has-leader", "has-collage");
     const c = IMG.collage;
-    const tile = (p, cls, i) => `<div class="cl-tile ${cls}" style="--d:${i * 0.12}s"><span style="background-image:url(&quot;${esc(p.src)}&quot;);background-position:${p.pos || "center"}${p.size ? ";background-size:" + p.size : ""}"></span></div>`;
+    const tile = (p, cls, i) => `<div class="cl-tile ${cls}" style="--d:${i * 0.12}s"><span style="background-image:url(&quot;${esc(p.src)}&quot;);background-position:${p.pos || "center"}${p.size ? ";background-size:" + p.size : ""}"></span>${p.name ? `<span class="cl-name"><b>${esc(p.name)}</b>${p.role ? `<small>${esc(p.role)}</small>` : ""}</span>` : ""}</div>`;
     $(".hero-visual").insertAdjacentHTML("afterbegin", `<div class="collage${c[3] ? "" : c[2] ? " cl-two" : " cl-one"}" role="img" aria-label="Photos of Y.S. Jagan Mohan Reddy">
       ${tile(c[0], "cl-main", 0)}${tile(c[1], "cl-a", 1)}${c[2] ? tile(c[2], "cl-b", 2) : ""}${c[3] ? tile(c[3], "cl-c", 3) : ""}${c[4] ? tile(c[4], "cl-round", 4) : ""}${IMG.collageYsr ? `<div class="cl-tile cl-ysr" style="--d:.6s" title="${esc(IMG.collageYsr.label)}"><span style="background-image:url(&quot;${esc(IMG.collageYsr.src)}&quot;);background-size:${IMG.collageYsr.size};background-position:${IMG.collageYsr.pos}"></span></div>` : ""}
       <div class="cl-tag">${IMG.logo ? `<img src="${esc(IMG.logo)}" alt="" onerror="this.onerror=null;this.src='images/icon-192.png'">` : ""}<div><b>Y.S. Jagan Mohan Reddy</b><span>President, YSR Congress Party</span></div></div>

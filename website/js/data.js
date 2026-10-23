@@ -67,7 +67,7 @@ const IMG = {
   collageYsr: { src: SITE + "/Slider/msimg1.jpeg", size: "750% auto", pos: "20% 2.5%", label: "Dr. YSR" },
   collage: [
     { src: SITE + "/Slider/msimg1.jpeg", size: "149% auto", pos: "30% 28%" }, // cropped: corner logo and top YSR photo hidden
-    { src: "images/aluru-with-jagan.jpg", pos: "62% 0%" } // both faces
+    { src: "images/aluru-with-jagan.jpg", pos: "62% 0%", name: "Aluru Sambasiva Reddy", role: "YSRCP NRI Wing President" } // both faces
   ],
   leader: { ...SITE_PHOTOS.worldMap, crop: { size: "cover", pos: "50% 0%" } }, // home banner card
   events: { src: SITE + "/Slider/simg4.png", cap: "Advantage Andhra Pradesh – Global Investors Summit", credit: SITE_CREDIT }, // wide event photo above the calendar
