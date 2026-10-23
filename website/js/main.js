@@ -286,8 +286,7 @@
       // like a clock: tags appear at 5 o'clock and go clockwise (6, 7 … 12, 1) round the circle; they disappear at 2 o'clock
       // (clock hour h = angle h * 30 - 90 degrees; 3 o'clock = 0)
       arc.n = hr.width < 1200 ? 0 : Math.max(3, Math.min(TAGS.length, Math.floor((arc.end - arc.start) * Math.PI / 180 * r / 170)));
-      const tb = $(".hero h1") && $(".hero h1").parentElement.getBoundingClientRect();
-      Object.assign(arc, { cx, cy, r, w: hr.width, text: tb ? { r: tb.right - hr.left, t: tb.top - hr.top, b: tb.bottom - hr.top } : null });
+      Object.assign(arc, { cx, cy, r, w: hr.width });
     };
     const arc = { start: 5 * 30 - 90, end: 14 * 30 - 90, n: 3, cx: 0, cy: 0, r: 0, w: 0 };
     // a point on the circle, kept inside the screen and below the top of the banner
@@ -295,9 +294,6 @@
       const a = deg * Math.PI / 180, hw = el.firstElementChild.offsetWidth / 2;
       const x = Math.max(hw + 14, Math.min(arc.w - hw - 14, arc.cx + Math.cos(a) * arc.r)), y = Math.max(32, arc.cy + Math.sin(a) * arc.r);
       el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
-      // fade out while passing the banner text, so a tag never covers the words
-      const t = arc.text;
-      return t && y + 20 > t.t && y - 20 < t.b ? Math.max(0, Math.min(1, (x - hw - t.r - 8) / 30)) : 1;
     };
     placeOrbit();
     // the country tags travel slowly along the circle; at 2 o'clock a country fades out and the next one comes in at 5 o'clock
@@ -313,8 +309,8 @@
           const p = (move + k * GAP) % SPAN;
           if (p < last[k]) { const [iso, name] = ALL_TAGS[next++ % ALL_TAGS.length]; el.firstElementChild.innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(name)}`; }
           last[k] = p;
-          const clear = spot(el, arc.start + p); // clockwise: 5 → 6 → … → 12 → 1 → 2 o'clock
-          el.style.opacity = (Math.max(0, Math.min(1, p / 14, (SPAN - p) / 14)) * clear).toFixed(2);
+          spot(el, arc.start + p); // clockwise: 5 → 6 → … → 12 → 1 → 2 o'clock
+          el.style.opacity = Math.max(0, Math.min(1, p / 14, (SPAN - p) / 14)).toFixed(2);
         });
         requestAnimationFrame(step);
       };
