@@ -287,20 +287,23 @@
       o.style.setProperty("--cx", cx + "px"); o.style.setProperty("--cy", cy + "px"); o.style.setProperty("--r", r + "px");
     };
     placeOrbit();
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && ALL_TAGS.length > TAGS.length) {
-      let next = TAGS.length;
-      setInterval(() => {
-        if (document.hidden) return;
-        const slots = $$(".ho-tag > span", box);
-        slots.forEach((el) => el.classList.add("ho-swap"));
-        setTimeout(() => {
-          // every city moves one place on; a new city joins at the front
-          for (let i = slots.length - 1; i > 0; i--) slots[i].innerHTML = slots[i - 1].innerHTML;
-          const [iso, city] = ALL_TAGS[next++ % ALL_TAGS.length];
-          slots[0].innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(city)}`;
-          slots.forEach((el) => el.classList.remove("ho-swap"));
-        }, 350);
-      }, 2500);
+    // the city tags travel slowly along the circle; at the end a city fades out and the next one comes in at the start
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const START = -70, SPAN = 225, GAP = SPAN / TAGS.length, SPEED = 4; // degrees per second
+      const tags = $$(".ho-tag", box), last = tags.map(() => 0);
+      let next = TAGS.length, move = 0, prev = null;
+      const step = (now) => {
+        move += (prev === null ? 0 : Math.min(now - prev, 100)) / 1000 * SPEED; prev = now;
+        tags.forEach((el, k) => {
+          const p = (move + k * GAP) % SPAN;
+          if (p < last[k]) { const [iso, city] = ALL_TAGS[next++ % ALL_TAGS.length]; el.firstElementChild.innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(city)}`; }
+          last[k] = p;
+          el.style.setProperty("--a", (START + p).toFixed(2) + "deg");
+          el.style.opacity = Math.max(0, Math.min(1, p / 20, (SPAN - p) / 20)).toFixed(2);
+        });
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
     }
     addEventListener("resize", placeOrbit);
     addEventListener("load", placeOrbit);
@@ -365,7 +368,7 @@
     const tile = (p, cls, i) => `<div class="cl-tile ${cls}" style="--d:${i * 0.12}s"><span style="background-image:url(&quot;${esc(p.src)}&quot;);background-position:${p.pos || "center"}${p.size ? ";background-size:" + p.size : ""}"></span></div>`;
     $(".hero-visual").insertAdjacentHTML("afterbegin", `<div class="collage${c[3] ? "" : c[2] ? " cl-two" : " cl-one"}" role="img" aria-label="Photos of Y.S. Jagan Mohan Reddy">
       ${tile(c[0], "cl-main", 0)}${tile(c[1], "cl-a", 1)}${c[2] ? tile(c[2], "cl-b", 2) : ""}${c[3] ? tile(c[3], "cl-c", 3) : ""}${c[4] ? tile(c[4], "cl-round", 4) : ""}${IMG.collageYsr ? `<div class="cl-tile cl-ysr" style="--d:.6s" title="${esc(IMG.collageYsr.label)}"><span style="background-image:url(&quot;${esc(IMG.collageYsr.src)}&quot;);background-size:${IMG.collageYsr.size};background-position:${IMG.collageYsr.pos}"></span></div>` : ""}
-      <div class="cl-tag">${IMG.logo ? `<img src="${esc(IMG.logo)}" alt="">` : ""}<div><b>Y.S. Jagan Mohan Reddy</b><span>President, YSR Congress Party</span></div></div>
+      <div class="cl-tag">${IMG.logo ? `<img src="${esc(IMG.logo)}" alt="" onerror="this.onerror=null;this.src='images/icon-192.png'">` : ""}<div><b>Y.S. Jagan Mohan Reddy</b><span>President, YSR Congress Party</span></div></div>
     </div>`);
     $(".hero-visual").removeAttribute("aria-hidden");
   } else if (IMG.leader) {

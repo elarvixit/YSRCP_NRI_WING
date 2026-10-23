@@ -1533,9 +1533,6 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .collage.cl-one { grid-template-rows: 1fr; }
 .collage.cl-one .cl-main { grid-row: 1; }
 
-/* orbit city tags: fade while moving to the next place */
-.ho-tag > span { transition: opacity .35s, filter .35s; }
-.ho-tag > span.ho-swap { opacity: 0; filter: blur(3px); }
 /* 2 photos: keep them smaller */
 .hero.has-collage .hero-visual:has(.cl-one) { height: 380px; align-self: center; }
 .collage.cl-one { inset: 10px 6% 10px 12%; }
