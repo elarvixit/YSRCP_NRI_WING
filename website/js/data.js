@@ -138,8 +138,7 @@ const HERO_SLIDES = [
 // one photo per year, from the wing's current website
 const jp = (file, year) => ({ src: SITE + "/Political_Journey/" + file, cap: "Y.S. Jagan Mohan Reddy · " + year, credit: SITE_CREDIT });
 const JOURNEY = [
-  { year: 2011, title: "The birth of a people's movement",
-    photo: { src: C + "6/6b/Ys-jagan1231.jpg", cap: "Y.S. Jagan Mohan Reddy at his office · 4 March 2011", credit: "Kenneth Uday Raj · Wikimedia Commons · CC0" },
+  { year: 2011, title: "The birth of a people's movement", photo: jp("1y.jpg", 2011),
     points: [
       "September 2009: Chief Minister Dr. Y.S. Rajasekhara Reddy dies in a helicopter crash. The Congress leadership refuses to make his son, then Kadapa MP Y.S. Jagan Mohan Reddy, the Chief Minister.",
       "April 2010: Jagan begins the Odarpu Yatra (condolence tour) in West Godavari and Khammam districts, refusing a Congress Working Committee order to call it off.",
@@ -179,56 +178,19 @@ const JOURNEY = [
       "8 June 2019: Amzath Basha Shaik Bepari, Alla Nani and Pilli Subhash Chandra Bose are among those made Deputy Chief Ministers.",
       "The Navaratnalu welfare promises made during the padayatra are put into action."
     ] },
-  { year: 2020, title: "Welfare at every doorstep",
-    photo: { src: PHOTOS.polavaram.src, cap: "Site visit to the Polavaram Irrigation Project · 14 December 2020", credit: PHOTOS.polavaram.credit },
-    points: [
-      "20 January 2020: the Assembly passes the decentralisation bill for three capitals – Visakhapatnam, Amaravati and Kurnool.",
-      "30 May 2020: YSR Rythu Bharosa Kendras open in villages across the state, bringing seeds, fertiliser and advice to farmers at their doorstep.",
-      "1 July 2020: 1,088 new 108 and 104 ambulances are flagged off from Vijayawada; Dharmana Krishna Das becomes Deputy Chief Minister.",
-      "12 August 2020: YSR Cheyutha begins – ₹18,750 a year for women aged 45–60 from SC, ST, BC and minority families.",
-      "8 October 2020: Jagananna Vidya Kanuka gives school kits – bag, uniforms, books and shoes – to about 42 lakh government school students."
-    ] },
   { year: 2021, title: "Governing for the people", photo: jp("7y.jpg", 2021),
     points: [
-      "January 2021: Jagananna Amma Vodi pays mothers ₹15,000 a year so their children can go to school.",
-      "February–March 2021: in the panchayat and municipal elections the party wins a large majority of village panchayats and almost all municipalities and corporations.",
+      "July 2020: Dharmana Krishna Das becomes Deputy Chief Minister.",
       "2 May 2021: Maddila Gurumoorthy wins the Tirupati (SC) Lok Sabha by-election for the party.",
-      "20 June 2021: during COVID-19, village volunteers and health staff vaccinate over 13 lakh people in a single day.",
-      "December 2021: Jagananna Sampoorna Gruha Hakku gives poor families full ownership papers for their houses."
-    ] },
-  { year: 2022, title: "Bringing government closer",
-    photo: { src: PHOTOS.insVizag.src, cap: "Dedicating INS Visakhapatnam to the city of Visakhapatnam · February 2022", credit: PHOTOS.insVizag.credit },
-    points: [
-      "February 2022: Y.S. Jagan Mohan Reddy dedicates the Navy's INS Visakhapatnam to the city.",
-      "4 April 2022: 13 new districts are formed – Andhra Pradesh now has 26 districts, bringing administration closer to people.",
-      "April 2022: in the cabinet reshuffle Budi Mutyala Naidu becomes Deputy Chief Minister.",
-      "May 2022: 'Gadapa Gadapaku Mana Prabhutvam' – MLAs and leaders go door to door to hear people's problems.",
-      "June–July 2022: S. Niranjan Reddy is appointed to the Rajya Sabha, and the party holds its plenary in Guntur."
-    ] },
-  { year: 2023, title: "Investing in Andhra Pradesh",
-    photo: { src: IMG.events.src, cap: "Advantage Andhra Pradesh – Global Investors Summit, Visakhapatnam · March 2023", credit: IMG.events.credit },
-    points: [
-      "3–4 March 2023: the Global Investors Summit in Visakhapatnam brings investment promises of about ₹13 lakh crore.",
-      "June 2023: 'Jagananna Suraksha' camps help people get certificates and welfare benefits in their own village.",
-      "September 2023: 'Jagananna Aarogya Suraksha' holds free health camps in every village and ward.",
-      "26 October 2023: the party starts the Samajika Sadhikara Bus Yatra on social justice for SC, ST, BC and minority communities.",
-      "November 2023: the 'Why AP Needs Jagan' campaign reaches every household."
-    ] },
-  { year: 2024, title: "Siddham",
-    photo: { src: SITE + "/Political_Journey/8y.jpg", cap: "Y.S. Jagan Mohan Reddy at Raj Bhavan · 2024", credit: SITE_CREDIT, pos: "18% 30%" },
-    points: [
-      "January–March 2024: huge 'Siddham' public meetings at Bheemili, Denduluru, Raptadu and Medarametla get the party ready for the election.",
-      "27 March 2024: the 'Memantha Siddham' bus yatra starts from Idupulapaya.",
-      "April 2024: Y.V. Subba Reddy, Golla Babu Rao and Meda Raghunadha Reddy join S. Niranjan Reddy in the Rajya Sabha.",
-      "2024 election: the party wins 11 of 175 Assembly seats with 1.33 crore votes (39.37%), and 4 Lok Sabha seats with 1.32 crore votes (39.61%).",
-      "June 2024: Jagan resigns as Chief Minister after the NDA alliance wins the election."
+      "April 2022: Budi Mutyala Naidu becomes Deputy Chief Minister in the cabinet reshuffle.",
+      "June 2022: S. Niranjan Reddy is appointed to the Rajya Sabha."
     ] },
   { year: 2025, title: "Back among the people", photo: jp("2025.jpeg", 2025),
     points: [
-      "With the support of nearly 40% of voters, the party continues as the voice of the people in Andhra Pradesh.",
-      "12 March 2025: the party celebrates its foundation day across the state and with NRIs around the world.",
-      "July 2025: the 'Babu Surety – Mosam Guarantee' campaign goes door to door on the election promises that were not kept.",
-      "Jagan tours the districts to meet farmers and families and rebuild the party for the next election."
+      "2024 election: the party wins 11 of 175 Assembly seats with 1.33 crore votes (39.37%), and 4 Lok Sabha seats with 1.32 crore votes (39.61%).",
+      "11 June 2024: Jagan resigns as Chief Minister after the NDA alliance wins the election.",
+      "April 2024: Y.V. Subba Reddy, Golla Babu Rao and Meda Raghunadha Reddy join S. Niranjan Reddy in the Rajya Sabha.",
+      "With the support of nearly 40% of voters, the party continues as the voice of the people and rebuilds for the next election."
     ] }
 ];
 
