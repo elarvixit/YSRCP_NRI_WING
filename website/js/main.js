@@ -1644,7 +1644,6 @@
         <label class="check"><input type="checkbox" data-pref-photo ${u.showPhoto ? "checked" : ""}> <span>Show my photo when someone scans my member card QR</span></label>
         <label class="check"><input type="checkbox" data-pref-email ${u.notifyEmail !== false ? "checked" : ""}> <span>Email me about my help requests and volunteer tasks</span></label>
         <a href="#" data-export-me>⬇ Download my data</a></div>` : ""}
-      <div class="dash-actions"><button class="btn btn-ghost" data-photo-frame>📸 Photo with Jagan Anna</button></div>
       <div class="dash-actions"><button class="btn btn-primary" data-card>🪪 ${esc(t("myCard", "My member card"))}</button><button class="btn btn-ghost" data-logout>${esc(t("logout", "Logout"))}</button>${API.online ? (state.deletionRequest && state.deletionRequest.status === "pending"
         ? `<button class="btn btn-ghost" data-cancel-delete>Cancel deletion request</button>`
         : `<button class="btn btn-ghost btn-danger" data-delete-me>Request account deletion</button>`) : ""}</div>`, true);
@@ -1826,61 +1825,6 @@
       : `<p class="empty light">Our first Hall of Fame volunteers will be announced soon. Do your weekly tasks – you could be next! 🏆</p>`;
   }
   loadFame();
-
-  /* ---------- "Photo with Jagan Anna" frame ---------- */
-  function openPhotoFrame() {
-    openModal(`<h3 id="modalTitle">📸 Photo with Jagan Anna</h3><p class="muted">Add your photo – we place it next to Jagan Anna with the YSRCP NRI Wing frame. Your photo stays on your phone; nothing is uploaded.</p>
-      <canvas id="frameCanvas" width="1080" height="1080" class="frame-canvas"></canvas>
-      <div class="dash-actions"><button class="btn btn-ghost" data-frame-pick>📷 Add my photo</button><button class="btn btn-primary" data-frame-save disabled>⬇ Download</button><button class="btn btn-ghost" data-frame-share hidden>📤 Share</button></div>`);
-    const c = $("#frameCanvas"), x = c.getContext("2d");
-    let mine = null;
-    const jagan = new Image(); jagan.src = "images/jagan-cm-office.webp";
-    const cover = (img, dx, dy, dw, dh, fx = 0.5, fy = 0.35) => { // draw like CSS object-fit: cover
-      const r = Math.max(dw / img.width, dh / img.height), sw = dw / r, sh = dh / r;
-      x.drawImage(img, (img.width - sw) * fx, (img.height - sh) * fy, sw, sh, dx, dy, dw, dh);
-    };
-    const round = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
-    function draw() {
-      const g = x.createLinearGradient(0, 0, 1080, 1080); g.addColorStop(0, "#0b3a8c"); g.addColorStop(0.55, "#1652c4"); g.addColorStop(1, "#0f9d58");
-      x.fillStyle = g; x.fillRect(0, 0, 1080, 1080);
-      x.fillStyle = "rgba(255,255,255,.07)"; x.beginPath(); x.arc(980, 120, 300, 0, 7); x.fill();
-      x.fillStyle = "#fff"; x.font = "800 64px Outfit, sans-serif"; x.textAlign = "center"; x.fillText("YSRCP NRI Wing", 540, 120);
-      x.font = "500 34px Outfit, sans-serif"; x.fillStyle = "rgba(255,255,255,.85)"; x.fillText("Global Unity, Local Impact", 540, 170);
-      [[90, mine], [570, jagan]].forEach(([X, img], k) => {
-        x.save(); round(X, 250, 420, 520, 36); x.fillStyle = "rgba(255,255,255,.15)"; x.fill(); x.clip();
-        if (img && img.complete && img.naturalWidth) cover(img, X, 250, 420, 520, k ? 0.52 : 0.5, k ? 0.38 : 0.3);
-        else { x.fillStyle = "rgba(255,255,255,.8)"; x.font = "600 40px Outfit, sans-serif"; x.fillText("Your photo", X + 210, 520); }
-        x.restore(); round(X, 250, 420, 520, 36); x.strokeStyle = "#fff"; x.lineWidth = 8; x.stroke();
-      });
-      x.fillStyle = "#fff"; x.font = "700 40px Outfit, sans-serif";
-      x.fillText(state.user ? state.user.name : "Proud NRI supporter", 300, 830); x.fillText("Y.S. Jagan Mohan Reddy", 780, 830);
-      x.font = "500 30px Outfit, sans-serif"; x.fillStyle = "rgba(255,255,255,.85)";
-      x.fillText(state.user ? `${state.user.city}, ${state.user.country}` : "", 300, 875); x.fillText("President, YSR Congress Party", 780, 875);
-      x.font = "700 38px Outfit, sans-serif"; x.fillStyle = "#f5b800"; x.fillText("#YSRCPNRI  ·  Together for Andhra Pradesh", 540, 990);
-      x.textAlign = "left";
-    }
-    jagan.onload = draw; draw();
-    const modalEl = $("#modalContent");
-    modalEl.addEventListener("click", async (e) => {
-      if (e.target.closest("[data-frame-pick]")) {
-        const f = await choosePhotoSource({ title: "Your photo for the frame" });
-        if (!f || !String(f.type).startsWith("image/")) return;
-        const url = URL.createObjectURL(f), img = new Image();
-        img.onload = () => { mine = img; draw(); $("[data-frame-save]", modalEl).disabled = false; $("[data-frame-share]", modalEl).hidden = !(navigator.canShare); };
-        img.src = url;
-      }
-      if (e.target.closest("[data-frame-save]")) {
-        const a = document.createElement("a"); a.download = "photo-with-jagan-anna.png"; a.href = c.toDataURL("image/png"); a.click();
-      }
-      if (e.target.closest("[data-frame-share]")) {
-        c.toBlob(async (blob) => {
-          const file = new File([blob], "photo-with-jagan-anna.png", { type: "image/png" });
-          try { if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "With Jagan Anna! #YSRCPNRI" }); else toast("Sharing is not supported here – please download instead"); } catch {}
-        });
-      }
-    });
-  }
-  document.addEventListener("click", (e) => { if (e.target.closest("[data-photo-frame]")) { e.preventDefault(); openPhotoFrame(); } });
 
   /* ---------- privacy settings in My Dashboard ---------- */
   async function savePrivacy(patch) {

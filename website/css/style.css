@@ -1455,7 +1455,6 @@ body.lang-te { font-family: "Noto Sans Telugu", Outfit, system-ui, sans-serif; }
 .install-btn { margin-top: 12px; }
 
 /* photo frame, code login, dashboard prefs, legal */
-.frame-canvas { width: 100%; height: auto; border-radius: 16px; display: block; margin: 10px 0 14px; box-shadow: var(--shadow); }
 .code-input { font-size: 1.6rem; letter-spacing: .4em; text-align: center; }
 .dash-tile.prefs { display: grid; gap: 8px; }
 .dash-tile.prefs a { color: var(--blue); font-weight: 600; font-size: .9rem; }
