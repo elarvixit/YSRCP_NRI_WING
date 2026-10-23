@@ -261,7 +261,7 @@
     // all our cities move along the orbit one by one, like train coaches
     const ALL_TAGS = ORBIT_COUNTRIES;
     const TAGS = ALL_TAGS.slice(0, 8);
-    const ANG = [45, 15, -15]; // starting spots on the right side (between 5 and 2 o clock); the rest start hidden
+    const ANG = [70, 130, 190, 250]; // starting spots (clockwise from 5 o clock); the rest start hidden
     box.innerHTML = `
       <div class="ho-glow"></div>
       <div class="ho-orbit" id="hoOrbit">
@@ -283,16 +283,16 @@
       const r = vr ? Math.max(vr.width, vr.height) / 2 + 46 : Math.min(hr.width, hr.height) * 0.42;
       o.style.setProperty("--cx", cx + "px"); o.style.setProperty("--cy", cy + "px"); o.style.setProperty("--r", r + "px");
       o.style.setProperty("--ymin", "32px"); // tags never go above the top of the banner
-      // like a clock: tags appear at 5 o'clock and go up the right side; they disappear at 2 o'clock
+      // like a clock: tags appear at 5 o'clock and go clockwise (6, 7 … 12, 1) round the circle; they disappear at 2 o'clock
       // (clock hour h = angle h * 30 - 90 degrees; 3 o'clock = 0)
-      arc.n = hr.width < 1200 ? 0 : Math.max(2, Math.min(4, Math.floor((arc.start - arc.end) * Math.PI / 180 * r / 140)));
+      arc.n = hr.width < 1200 ? 0 : Math.max(3, Math.min(TAGS.length, Math.floor((arc.end - arc.start) * Math.PI / 180 * r / 170)));
       Object.assign(arc, { cx, cy, r, w: hr.width });
     };
-    const arc = { start: 5 * 30 - 90, end: 2 * 30 - 90, n: 3, cx: 0, cy: 0, r: 0, w: 0 };
+    const arc = { start: 5 * 30 - 90, end: 14 * 30 - 90, n: 3, cx: 0, cy: 0, r: 0, w: 0 };
     // a point on the circle, kept inside the screen and below the top of the banner
     const spot = (el, deg) => {
       const a = deg * Math.PI / 180, hw = el.firstElementChild.offsetWidth / 2;
-      const x = Math.min(arc.w - hw - 14, arc.cx + Math.cos(a) * arc.r), y = Math.max(32, arc.cy + Math.sin(a) * arc.r);
+      const x = Math.max(hw + 14, Math.min(arc.w - hw - 14, arc.cx + Math.cos(a) * arc.r)), y = Math.max(32, arc.cy + Math.sin(a) * arc.r);
       el.style.left = x.toFixed(1) + "px"; el.style.top = y.toFixed(1) + "px";
     };
     placeOrbit();
@@ -303,13 +303,13 @@
       let next = TAGS.length, move = 0, prev = null;
       const step = (now) => {
         move += (prev === null ? 0 : Math.min(now - prev, 100)) / 1000 * SPEED; prev = now;
-        const SPAN = arc.start - arc.end, GAP = SPAN / arc.n;
+        const SPAN = arc.end - arc.start, GAP = SPAN / arc.n;
         tags.forEach((el, k) => {
           if (k >= arc.n) { el.style.opacity = 0; return; }
           const p = (move + k * GAP) % SPAN;
           if (p < last[k]) { const [iso, name] = ALL_TAGS[next++ % ALL_TAGS.length]; el.firstElementChild.innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(name)}`; }
           last[k] = p;
-          spot(el, arc.start - p); // counter-clockwise: 5 → 4 → 3 → 2 o'clock
+          spot(el, arc.start + p); // clockwise: 5 → 6 → … → 12 → 1 → 2 o'clock
           el.style.opacity = Math.max(0, Math.min(1, p / 14, (SPAN - p) / 14)).toFixed(2);
         });
         requestAnimationFrame(step);
