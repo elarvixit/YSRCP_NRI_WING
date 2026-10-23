@@ -67,7 +67,6 @@ const IMG = {
   collageYsr: { src: SITE + "/Slider/msimg1.jpeg", size: "750% auto", pos: "20% 2.5%", label: "Dr. YSR" },
   collage: [
     { src: SITE + "/Slider/msimg1.jpeg", size: "149% auto", pos: "30% 28%" }, // cropped: corner logo and top YSR photo hidden
-    { src: "images/jagan-cm-office.webp", pos: "50% 35%" },
     { src: "images/aluru-with-jagan.jpg", pos: "50% 14%" }
   ],
   leader: { ...SITE_PHOTOS.worldMap, crop: { size: "cover", pos: "50% 0%" } }, // home banner card
