@@ -1532,3 +1532,7 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .collage.cl-two .cl-main { grid-row: 1 / 3; }
 .collage.cl-one { grid-template-rows: 1fr; }
 .collage.cl-one .cl-main { grid-row: 1; }
+
+/* orbit city tags: fade while moving to the next place */
+.ho-tag > span { transition: opacity .35s, filter .35s; }
+.ho-tag > span.ho-swap { opacity: 0; filter: blur(3px); }

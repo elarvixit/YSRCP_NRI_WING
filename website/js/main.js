@@ -261,7 +261,9 @@
   if (IMG.heroOrbit) {
     hero.classList.add("has-photo", "has-orbit");
     const box = $("#heroPhoto");
-    const TAGS = [["us", "Dallas"], ["gb", "London"], ["ae", "Dubai"], ["sg", "Singapore"], ["au", "Sydney"], ["ca", "Toronto"], ["qa", "Doha"]];
+    // all our cities move along the orbit one by one, like train coaches
+    const ALL_TAGS = CHAPTERS.map((c) => [c.iso, c.city]);
+    const TAGS = ALL_TAGS.slice(0, 7);
     const ANG = [-62, -26, 10, 46, 82, 118, 152, 186];
     box.innerHTML = `
       <div class="ho-glow"></div>
@@ -285,6 +287,21 @@
       o.style.setProperty("--cx", cx + "px"); o.style.setProperty("--cy", cy + "px"); o.style.setProperty("--r", r + "px");
     };
     placeOrbit();
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches && ALL_TAGS.length > TAGS.length) {
+      let next = TAGS.length;
+      setInterval(() => {
+        if (document.hidden) return;
+        const slots = $$(".ho-tag > span", box);
+        slots.forEach((el) => el.classList.add("ho-swap"));
+        setTimeout(() => {
+          // every city moves one place on; a new city joins at the front
+          for (let i = slots.length - 1; i > 0; i--) slots[i].innerHTML = slots[i - 1].innerHTML;
+          const [iso, city] = ALL_TAGS[next++ % ALL_TAGS.length];
+          slots[0].innerHTML = `<img src="https://flagcdn.com/w40/${iso}.png" alt="">${esc(city)}`;
+          slots.forEach((el) => el.classList.remove("ho-swap"));
+        }, 350);
+      }, 2500);
+    }
     addEventListener("resize", placeOrbit);
     addEventListener("load", placeOrbit);
   } else if (IMG.heroNri && typeof jsVectorMap !== "undefined") {
