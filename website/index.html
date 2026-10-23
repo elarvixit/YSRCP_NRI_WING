@@ -43,7 +43,6 @@
 </div>
 
 <div class="scroll-progress" id="scrollProgress"></div>
-<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
 
 <!-- Announcement ticker -->
 <div class="newsbar" role="region" aria-label="YSRCP latest news" aria-live="polite">
@@ -278,6 +277,11 @@
     <div class="section-head reveal light">
       <h2 data-i18n="chapterTitle">Find Your Country or City</h2>
       <p data-i18n="chapterText">Pick your country and city – coordinator, WhatsApp group and local events in one click.</p>
+      <form class="search-box top-search" id="placeSearchForm" role="search"><span>🔍</span>
+        <input id="placeSearch" type="search" list="placeOptions" autocomplete="off" placeholder="Search your country or city…" aria-label="Search country or city">
+        <datalist id="placeOptions"></datalist>
+        <button class="btn btn-primary btn-sm">Search</button></form>
+      <p class="top-search-msg" id="placeSearchMsg" aria-live="polite"></p>
     </div>
     <div class="map-wrap reveal">
       <div class="map-card">
@@ -593,17 +597,12 @@
         <a href="https://www.instagram.com/ysrcpofficial" target="_blank" rel="noopener" aria-label="Instagram" class="ig"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor" stroke="none"/></svg></a>
         <a href="https://www.youtube.com/@YSRCPOfficial" target="_blank" rel="noopener" aria-label="YouTube">▶</a>
       </div>
+      <button class="btn btn-ghost btn-sm install-btn" id="installBtn" hidden>📲 Install the app</button>
     </div>
     <div><h4 data-i18n="footerServices">NRI Services</h4>
       <a href="#services">Education Guidance</a><a href="#services">Visa Support</a><a href="#services">Job Assistance</a><a href="#services">Gulf Worker Support</a><a href="#services">Native Village Connect</a></div>
     <div><h4 data-i18n="footerLinks">Quick Links</h4>
       <a href="#about">About YSRCP</a><a href="#leadership">Leadership</a><a href="#chapters">My City</a><a href="#events">Events</a><a href="#helpdesk">Help Desk</a><a href="#achievements">Achievements</a></div>
-    <div class="footer-news"><h4 data-i18n="footerNews">Monthly newsletter</h4>
-      <p class="muted">News from the NRI Wing, events and help-desk tips – once a month.</p>
-      <form id="newsForm" class="news-form"><input name="email" type="email" required placeholder="Your email" aria-label="Your email"><button class="btn btn-primary btn-sm">Subscribe</button>
-        <label class="check"><input type="checkbox" required> <span>I agree to receive emails. Unsubscribe any time.</span></label></form>
-      <button class="btn btn-ghost btn-sm install-btn" id="installBtn" hidden>📲 Install the app</button>
-    </div>
     <div><h4 data-i18n="footerRegions">Regions</h4>
       <a href="#chapters" data-region="North America">North America</a><a href="#chapters" data-region="Europe">Europe</a><a href="#chapters" data-region="Gulf">Gulf</a><a href="#chapters" data-region="South East Asia">South East Asia</a><a href="#chapters" data-region="Australia & NZ">Australia & NZ</a></div>
   </div>

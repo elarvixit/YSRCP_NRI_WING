@@ -52,8 +52,6 @@ p { margin: 0 0 1em; }
 @keyframes pulse { 50% { transform: scale(1.08); box-shadow: 0 0 0 18px rgba(34,197,111,.08); } }
 
 .scroll-progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 200; background: linear-gradient(90deg, var(--green-2), var(--blue-3), var(--gold)); }
-.cursor-glow { position: fixed; width: 420px; height: 420px; border-radius: 50%; pointer-events: none; z-index: 0; background: radial-gradient(circle, rgba(47,123,255,.10), transparent 65%); transform: translate(-50%, -50%); transition: opacity .3s; left: -500px; top: -500px; }
-@media (hover: none) { .cursor-glow { display: none; } }
 
 /* ---------- Ticker ---------- */
 .ticker { background: var(--dark); color: #cfe0ff; font-size: .85rem; overflow: hidden; white-space: nowrap; position: relative; z-index: 60; }
@@ -1536,3 +1534,10 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .hero.has-collage .hero-visual:has(.cl-one) { height: 380px; align-self: center; }
 .collage.cl-one { inset: 10px 6% 10px 12%; }
 .collage.cl-one .cl-a { align-self: center; aspect-ratio: 3 / 4; }
+
+/* search under "Find Your Country or City" */
+.top-search { max-width: 560px; margin: 22px auto 0; padding-right: 6px; }
+.top-search input { flex: 1; min-width: 0; }
+.top-search .btn { flex: none; }
+.top-search-msg { min-height: 1.2em; margin: 8px 0 0; font-size: .88rem; color: #b9cbf0; }
+.footer .install-btn { margin-top: 14px; }

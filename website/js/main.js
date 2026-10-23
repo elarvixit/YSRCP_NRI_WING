@@ -128,10 +128,7 @@
   sectionIds.forEach((id) => { const s = document.getElementById(id); if (s) navIO.observe(s); });
 
   /* ---------- cursor glow + spotlight + ripple + magnetic ---------- */
-  const glow = $("#cursorGlow");
   document.addEventListener("pointermove", (e) => {
-    glow.style.left = e.clientX + "px";
-    glow.style.top = e.clientY + "px";
     const sp = e.target.closest(".svc, .stat-card");
     if (sp) {
       const r = sp.getBoundingClientRect();
@@ -586,6 +583,38 @@
     try { committeeTeams = (await API.get("/country-teams")).teams || {}; renderCommittee(); } catch {}
   }
   renderCommittee();
+  /* ---------- search under "Find Your Country or City" ---------- */
+  (function placeSearch() {
+    const input = $("#placeSearch"), msg = $("#placeSearchMsg");
+    $("#placeOptions").innerHTML = [...countries.map((c) => c.country), ...CHAPTERS.map((c) => c.city + ", " + c.country)]
+      .map((v) => `<option value="${esc(v)}">`).join("");
+    const filterTable = (q) => {
+      let shown = 0;
+      $$("#countryList tr").forEach((tr) => {
+        const c = countries.find((x) => x.country === tr.dataset.country);
+        const hit = !q || (c.country + " " + c.cities.join(" ")).toLowerCase().includes(q);
+        tr.hidden = !hit; if (hit) shown++;
+      });
+      return shown;
+    };
+    input.addEventListener("input", () => {
+      const q = input.value.split(",")[0].trim().toLowerCase();
+      query = q; region = "all"; $("#chapterSearch").value = input.value.split(",")[0].trim();
+      renderRegionChips(); renderChapters();
+      const n = filterTable(q);
+      msg.textContent = !q ? "" : n ? `${n} ${n === 1 ? "country" : "countries"} found – see the table and city cards below.` : "No city team here yet – register and we'll help you start one!";
+    });
+    $("#placeSearchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = input.value.trim(); if (!v) { input.focus(); return; }
+      const [first] = v.split(",").map((x) => x.trim());
+      const country = countries.find((c) => c.country.toLowerCase() === v.toLowerCase());
+      if (country) { showCountry(country.country); return; }
+      const city = CHAPTERS.find((c) => c.city.toLowerCase() === first.toLowerCase());
+      if (city) { query = city.city.toLowerCase(); $("#chapterSearch").value = city.city; renderChapters(); }
+      $("#chapterGrid").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  })();
   (function countryList() {
     const total = countries.reduce((s, c) => s + c.members, 0), max = countries[0].members;
     $("#totalMembers").textContent = fmtN(total);
@@ -1809,8 +1838,8 @@
     });
   });
 
-  /* ---------- newsletter ---------- */
-  $("#newsForm").addEventListener("submit", async (e) => {
+  /* ---------- newsletter (footer form removed; subscribers are still managed in the admin panel) ---------- */
+  $("#newsForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!API.online) { toast("Please try again when you are online"); return; }
     try { const r = await API.post("/newsletter", { email: e.target.elements.email.value, name: state.user ? state.user.name : "", country: state.user ? state.user.country : "", consent: true }); e.target.reset(); toast("📰 " + r.message); }
