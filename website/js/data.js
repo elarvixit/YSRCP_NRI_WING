@@ -127,13 +127,11 @@ const HERO_SLIDES = [
     title: { en: "Need help back home? <em>We are here.</em>", te: "ఇంటి వద్ద సహాయం కావాలా? <em>మేమున్నాం.</em>" },
     text: { en: "From property and documents to medical emergencies, our volunteers in every district help NRI families. Raise a request online and follow it step by step until it is solved.",
             te: "ఆస్తి, పత్రాల నుంచి వైద్య అత్యవసరాల వరకు – ప్రతి జిల్లాలో మా వాలంటీర్లు ఎన్ఆర్ఐ కుటుంబాలకు సహాయం చేస్తారు. ఆన్‌లైన్‌లో అభ్యర్థన పంపి పరిష్కారం వరకు ట్రాక్ చేయండి." },
-    points: { en: ["Ticket number for every request", "Local volunteer in your district", "Target: solved within 7 days"], te: ["ప్రతి అభ్యర్థనకు టికెట్ నంబర్", "మీ జిల్లాలో స్థానిక వాలంటీర్", "7 రోజుల్లో పరిష్కారం లక్ష్యం"] },
     theme: "b" },
   {
     title: { en: "Join hands with Jagan Anna – <em>serve Andhra Pradesh from anywhere</em>", te: "జగనన్నతో చేయి కలపండి – <em>ఎక్కడ ఉన్నా ఆంధ్రప్రదేశ్‌కు సేవ చేయండి</em>" },
     text: { en: "Living abroad, you can still make a difference at home. Each week we share simple volunteer tasks – spread the party's message, call families in your home constituency or join a city meet – and every task earns points, badges and a place on our Achievements wall.",
             te: "విదేశాల్లో ఉన్నా సొంత ఊరిలో మార్పు తీసుకురావచ్చు. ప్రతి వారం సులభమైన సేవా పనులు – పార్టీ సందేశాన్ని పంచుకోండి, మీ నియోజకవర్గంలోని కుటుంబాలకు ఫోన్ చేయండి లేదా చాప్టర్ మీట్‌లో పాల్గొనండి. ప్రతి పనికి పాయింట్లు, బ్యాడ్జ్‌లు." },
-    points: { en: ["New tasks every week", "Points, badges & leaderboard", "Monthly recognition"], te: ["ప్రతి వారం కొత్త పనులు", "పాయింట్లు, బ్యాడ్జ్‌లు", "నెలవారీ గుర్తింపు"] },
     theme: "c" }
 ];
 
