@@ -1548,3 +1548,8 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 .cl-tile .cl-name { position: absolute; left: 0; right: 0; bottom: 0; inset-inline: 0; top: auto; z-index: 1; display: grid; gap: 1px; padding: 22px 10px 9px; text-align: center; color: #fff; background: linear-gradient(transparent, rgba(6,22,56,.88)); }
 .cl-name b { font-size: .82rem; line-height: 1.2; }
 .cl-name small { font-size: .68rem; font-weight: 600; color: #5cf5a3; }
+
+/* home banner: the poster fills the circle where the countries move */
+.ho-poster { position: absolute; left: var(--cx); top: var(--cy); width: calc(var(--r) * 2); height: calc(var(--r) * 2); transform: translate(-50%, -50%); border-radius: 50%; background-color: #fff; background-repeat: no-repeat; box-shadow: 0 0 0 6px rgba(255,255,255,.12), 0 30px 70px -20px rgba(0,0,0,.65); }
+.collage.cl-poster { display: block; }
+@media (max-width: 980px) { .ho-poster { display: none; } }

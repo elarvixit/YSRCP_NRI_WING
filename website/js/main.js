@@ -265,6 +265,7 @@
     box.innerHTML = `
       <div class="ho-glow"></div>
       <div class="ho-orbit" id="hoOrbit">
+        ${IMG.orbitPoster ? `<i class="ho-poster" role="img" aria-label="YSRCP NRI Connects – Y.S. Jagan Mohan Reddy" style="background-image:url(&quot;${esc(IMG.orbitPoster.src)}&quot;);background-size:${IMG.orbitPoster.size};background-position:${IMG.orbitPoster.pos}"></i>` : ""}
         <i class="ring r1"></i><i class="ring r2"></i><i class="ring r3"></i>
         <span class="plane-arm a1"><b>✈</b></span><span class="plane-arm a2"><b>✈</b></span><span class="plane-arm a3"><b>✈</b></span>
         ${TAGS.map(([iso, city], i) => `<span class="ho-tag" style="--a:${ANG[i] ?? 0}deg;--d:${(i * 0.7).toFixed(1)}s${i >= ANG.length ? ";opacity:0" : ""}"><span><img src="https://flagcdn.com/w40/${iso}.png" alt="">${city}</span></span>`).join("")}
@@ -375,7 +376,11 @@
     hero.classList.add("has-photo");
     $("#heroPhoto").style.backgroundImage = `url("${IMG.hero}")`;
   }
-  if (IMG.collage && IMG.collage.length >= 2) {
+  const ysrBadge = () => IMG.collageYsr ? `<div class="cl-tile cl-ysr" style="--d:.6s" title="${esc(IMG.collageYsr.label)}"><span style="background-image:url(&quot;${esc(IMG.collageYsr.src)}&quot;);background-size:${IMG.collageYsr.size};background-position:${IMG.collageYsr.pos}"></span></div>` : "";
+  if (IMG.heroOrbit && IMG.orbitPoster) {
+    hero.classList.add("has-leader", "has-collage", "has-poster");
+    $(".hero-visual").insertAdjacentHTML("afterbegin", `<div class="collage cl-poster">${ysrBadge()}</div>`);
+  } else if (IMG.collage && IMG.collage.length >= 2) {
     hero.classList.add("has-leader", "has-collage");
     const c = IMG.collage;
     const tile = (p, cls, i) => `<div class="cl-tile ${cls}" style="--d:${i * 0.12}s"><span style="background-image:url(&quot;${esc(p.src)}&quot;);background-position:${p.pos || "center"}${p.size ? ";background-size:" + p.size : ""}"></span>${p.name ? `<span class="cl-name"><b>${esc(p.name)}</b>${p.role ? `<small>${esc(p.role)}</small>` : ""}</span>` : ""}</div>`;

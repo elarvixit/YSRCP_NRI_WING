@@ -64,6 +64,8 @@ const IMG = {
   logo: "https://www.ysrcpnriwing.org/assets/nrilogo-CnaBSrOt.png", // official YSRCP NRI Wing logo (copy to images/ before launch)
   // home banner photo collage – the first photo is the large one
   // Dr. YSR – small photo taken from the top of the poster, shown as a round badge on the collage
+  // "YSRCP NRI Connects" poster shown inside the circle where the countries move (size / pos as CSS background values)
+  orbitPoster: { src: SITE + "/Slider/msimg1.jpeg", size: "cover", pos: "50% 13%" },
   collageYsr: { src: SITE + "/Slider/msimg1.jpeg", size: "750% auto", pos: "20% 2.5%", label: "Dr. YSR" },
   collage: [
     { src: SITE + "/Slider/msimg1.jpeg", size: "149% auto", pos: "30% 28%" }, // cropped: corner logo and top YSR photo hidden
