@@ -9,7 +9,7 @@ const mailer = require("../mailer");
 
 const r = express.Router();
 const postLimit = U.rateLimit("post", 30, 10 * 60e3);   // 30 form posts per 10 min per IP
-const loginLimit = U.rateLimit("login", 10, 10 * 60e3);
+const loginLimit = U.rateLimit("login", 30, 10 * 60e3); // each code still allows only 5 wrong tries
 
 const publicMember = (m) => m && {
   memberNo: m.member_no, name: m.name, email: m.email, phone: m.phone, country: m.country, city: m.city,

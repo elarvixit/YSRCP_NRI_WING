@@ -1108,13 +1108,13 @@
   }
   function renderPoints(bump) {
     const p = points();
-    $("#myPoints").textContent = p;
+    const mp = $("#myPoints"); if (mp) mp.textContent = p;
     const next = BADGES.find((b) => b.need > p);
     const prevNeed = [...BADGES].reverse().find((b) => b.need <= p)?.need || 0;
     const pct = next ? (p - prevNeed) / (next.need - prevNeed) : 1;
-    $(".ring-fg").style.strokeDashoffset = 326.7 * (1 - pct);
+    const fg = $(".ring-fg"); if (fg) fg.style.strokeDashoffset = 326.7 * (1 - pct);
     $("#nextBadge").innerHTML = next ? `<b>${next.need - p}</b> pts to unlock ${next.icon} <b>${next.name}</b>` : "👑 All badges unlocked!";
-    if (bump) { const r = $("#pointsRing"); r.classList.remove("bump"); void r.offsetWidth; r.classList.add("bump"); }
+    const pr = $("#pointsRing"); if (bump && pr) { pr.classList.remove("bump"); void pr.offsetWidth; pr.classList.add("bump"); }
     const me = state.user ? { name: state.user.name.split(" ")[0] + " (you)", city: state.user.city, pts: p, me: true } : null;
     const board = remoteLeaders && remoteLeaders.length
       ? remoteLeaders.slice(0, 7)
@@ -1318,6 +1318,7 @@
           <label>Full name<input name="name" required autocomplete="name"></label>
           <div class="otp-email"><label>Email<input name="email" type="email" required autocomplete="email" placeholder="you@example.com"></label>
             <button type="button" class="btn btn-primary btn-sm" data-otp-send>Send OTP</button></div>
+          <p class="otp-err" data-otp-err role="alert" hidden></p>
           <div class="otp-box" data-otp-box hidden>
             <small class="muted" data-otp-to></small>
             <div class="otp-email"><label>Enter OTP<input name="emailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit OTP" class="code-input"></label>
@@ -1389,11 +1390,12 @@
       if (ok) $("[data-otp-box]", form).hidden = true;
     };
     // changing the email after verifying needs a new OTP
-    form.elements.email.addEventListener("input", otpUi);
+    form.elements.email.addEventListener("input", () => { otpUi(); $("[data-otp-err]", form).hidden = true; });
     async function sendCode(ch) {
       const inp = form.elements[ch];
       if (!inp.checkValidity()) { inp.reportValidity(); return false; }
       const btns = $$("[data-otp-send]", form); btns.forEach((b) => (b.disabled = true));
+      const errEl = $("[data-otp-err]", form); errEl.hidden = true;
       try {
         const r = await API.post("/verify/send", { channel: ch, value: valueOf(ch) }); toast("📨 " + r.message);
         $("[data-otp-box]", form).hidden = false;
@@ -1404,7 +1406,12 @@
         $(".otp-email [data-otp-send]", form).textContent = "Resend";
         return true;
       }
-      catch (err) { toast(err.message); return false; }
+      catch (err) {
+        // show the reason under the email box (a toast is easy to miss)
+        errEl.innerHTML = `⚠️ ${esc(err.message)}${err.status === 409 ? ` <a href="#" data-open="login">Log in</a>` : ""}`;
+        errEl.hidden = false; $("[data-otp-box]", form).hidden = true;
+        toast(err.message); return false;
+      }
       finally { btns.forEach((b) => (b.disabled = false)); }
     }
     async function checkCode() {

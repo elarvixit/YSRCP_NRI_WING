@@ -1238,9 +1238,9 @@ body:not([data-page="home"]) main > section:first-of-type:not([hidden]) { paddin
 .hero.has-orbit .hero-blobs { display: none; }
 .ho-glow { position: absolute; inset: 0; background: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px) 0 0 / 26px 26px; -webkit-mask-image: radial-gradient(circle at 75% 45%, #000, transparent 70%); mask-image: radial-gradient(circle at 75% 45%, #000, transparent 70%); }
 .ho-orbit { position: absolute; inset: 0; }
-.ring { position: absolute; left: var(--cx); top: var(--cy); width: calc(var(--r) * 2); height: calc(var(--r) * 2); transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px dashed rgba(255,255,255,.32); }
-.ring.r2 { width: calc(var(--r) * 2.36); height: calc(var(--r) * 2.36); border: 1px solid rgba(92,245,163,.22); }
-.ring.r3 { width: calc(var(--r) * 1.64); height: calc(var(--r) * 1.64); border: 1.5px dotted rgba(255,216,77,.35); }
+.ho-orbit .ring { position: absolute; left: var(--cx); top: var(--cy); width: calc(var(--r) * 2); height: calc(var(--r) * 2); transform: translate(-50%, -50%); border-radius: 50%; border: 1.5px dashed rgba(255,255,255,.32); }
+.ho-orbit .ring.r2 { width: calc(var(--r) * 2.36); height: calc(var(--r) * 2.36); border: 1px solid rgba(92,245,163,.22); }
+.ho-orbit .ring.r3 { width: calc(var(--r) * 1.64); height: calc(var(--r) * 1.64); border: 1.5px dotted rgba(255,216,77,.35); }
 .plane-arm { position: absolute; left: var(--cx); top: var(--cy); width: 0; height: 0; animation: spin 18s linear infinite; }
 .plane-arm b { position: absolute; left: var(--r); top: 0; transform: translate(-50%, -50%) rotate(90deg); font-size: 22px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,.9), 0 0 22px rgba(92,245,163,.8); font-weight: 400; }
 .plane-arm.a2 { animation-duration: 26s; animation-direction: reverse; animation-delay: -8s; }
@@ -1256,7 +1256,7 @@ body:not([data-page="home"]) main > section:first-of-type:not([hidden]) { paddin
 .ho-waves .w3 { fill: rgba(6,22,56,.35); }
 @keyframes waveMove { to { transform: translateX(-50%); } }
 .hero.has-orbit .hero-copy h1 { text-shadow: 0 4px 24px rgba(6,22,56,.45); }
-@media (max-width: 980px) { .ho-tag { display: none; } .ring, .plane-arm { opacity: .5; } }
+@media (max-width: 980px) { .ho-tag { display: none; } .ho-orbit .ring, .plane-arm { opacity: .5; } }
 @media (prefers-reduced-motion: reduce) { .plane-arm, .ho-waves, .ho-tag > span { animation: none; } }
 .quick-tile { grid-template-columns: auto 1fr; }
 
@@ -1555,3 +1555,14 @@ p.v-ok { margin: -4px 0 0; color: var(--green); font-weight: 700; font-size: .88
 @media (max-width: 980px) { .ho-poster { display: none; } }
 /* poster blends into the banner: see-through, banner-coloured, soft edges */
 .ho-poster { background-color: transparent; box-shadow: none; opacity: .6; mix-blend-mode: overlay; -webkit-mask-image: radial-gradient(circle, #000 40%, transparent 72%); mask-image: radial-gradient(circle, #000 40%, transparent 72%); }
+
+/* YouTube icon: YouTube red on hover */
+.socials a.yt:hover { background: #ff0000; }
+/* footer: keep the last line clear of the 24/7 Help button */
+.footer-bottom { padding-bottom: 96px; }
+/* less space above "Find Your Country or City" */
+#chapters.section { padding-top: clamp(32px, 4vw, 52px); }
+
+/* registration: why the OTP could not be sent */
+.otp-err { margin: -4px 0 0; padding: 8px 12px; border-radius: 10px; background: #fdecec; color: #b42318; font-size: .86rem; font-weight: 600; }
+.otp-err a { color: #1652c4; text-decoration: underline; cursor: pointer; }
