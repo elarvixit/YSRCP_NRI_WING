@@ -8,8 +8,10 @@ const { run } = require("./db");
 
 const KEY = process.env.RESEND_API_KEY || "";
 const SMTP_USER = process.env.SMTP_USER || "";
-const SMTP_PASS = (process.env.SMTP_PASS || "").replace(/\s+/g, ""); // Google shows app passwords with spaces
 const SMTP_HOST = process.env.SMTP_HOST || (SMTP_USER ? "smtp.gmail.com" : "");
+const IS_GMAIL = /gmail|google/i.test(SMTP_HOST);
+// Google shows app passwords with spaces – remove them only for Gmail (other mailbox passwords may contain spaces)
+const SMTP_PASS = IS_GMAIL ? (process.env.SMTP_PASS || "").replace(/\s+/g, "") : (process.env.SMTP_PASS || "");
 const SMTP_PORT = Number(process.env.SMTP_PORT) || 465;
 const FROM = process.env.MAIL_FROM || (SMTP_USER ? `YSRCP NRI Wing <${SMTP_USER}>` : "");
 const DEV_LOG = !process.env.VERCEL && (process.env.MAIL_DEV_LOG === "1" || (!KEY && !SMTP_USER));
@@ -75,7 +77,9 @@ const testMode = () => !process.env.VERCEL && process.env.MAIL_DEV_LOG === "1" &
 function hint(error) {
   const e = String(error || "");
   if (/535|534|Username and Password not accepted|Invalid login|BadCredentials|Application-specific password/i.test(e))
-    return "Gmail refused the login. SMTP_PASS must be a 16-letter Google App password (not your normal Gmail password), and SMTP_USER must be the same Gmail address that created it. Make a new App password, update SMTP_PASS in Vercel and redeploy.";
+    return IS_GMAIL
+      ? "Gmail refused the login. SMTP_PASS must be a 16-letter Google App password (not your normal Gmail password), and SMTP_USER must be the same Gmail address that created it. Make a new App password, update SMTP_PASS in Vercel and redeploy."
+      : `The mail server (${SMTP_HOST}) refused the login. Check that SMTP_USER is the full email address and SMTP_PASS is that mailbox's current password (try logging in to webmail with it), and that SMTP sending is allowed for this mailbox. Then update Vercel and redeploy.`;
   if (/ETIMEDOUT|ECONNREFUSED|ENOTFOUND|Greeting never received|Connection timeout/i.test(e)) return "Could not reach the mail server. Check SMTP_HOST / SMTP_PORT (Gmail: leave them empty).";
   if (/daily|limit|quota|550 5.4.5/i.test(e)) return "Gmail's daily sending limit was reached. Try again tomorrow.";
   if (/domain|verify|403/i.test(e)) return "The sender address is not allowed. With Gmail, remove MAIL_FROM (or set it to your Gmail address).";
