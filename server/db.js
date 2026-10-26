@@ -379,13 +379,23 @@ function getDb() {
 }
 
 // first admin from ADMIN_USERNAME / ADMIN_PASSWORD (only when there is no admin yet)
+// ADMIN_RESET=1 in Vercel: the main admin gets the current ADMIN_USERNAME / ADMIN_PASSWORD (to change them or recover a lost password)
 async function bootstrapAdmin(d) {
   const u = process.env.ADMIN_USERNAME, p = process.env.ADMIN_PASSWORD;
   if (!u || !p) return;
   const { rows } = await d.query("SELECT COUNT(*) AS n FROM ysr_nri_wing_admins");
-  if (rows[0].n > 0) return;
-  if (p.length < 10) { console.error("[db] ADMIN_PASSWORD must be at least 10 characters – first admin not created."); return; }
+  if (p.length < 10) { console.error("[db] ADMIN_PASSWORD must be at least 10 characters – admin not created / changed."); return; }
   const { hashPassword } = require("./auth");
+  if (rows[0].n > 0) {
+    if (process.env.ADMIN_RESET !== "1") return;
+    const main = (await d.query("SELECT id FROM ysr_nri_wing_admins WHERE role = 'admin' ORDER BY id LIMIT 1")).rows[0];
+    if (!main) return;
+    const taken = (await d.query("SELECT id FROM ysr_nri_wing_admins WHERE lower(username) = lower($1) AND id <> $2", [u, main.id])).rows[0];
+    if (taken) { console.error(`[db] ADMIN_RESET: another admin already uses the name "${u}" – choose a different ADMIN_USERNAME.`); return; }
+    await d.query("UPDATE ysr_nri_wing_admins SET username = $1, pass_hash = $2 WHERE id = $3", [u, hashPassword(p), main.id]);
+    console.log(`[db] ADMIN_RESET: main admin is now "${u}" with the password from ADMIN_PASSWORD. Remove ADMIN_RESET in Vercel now.`);
+    return;
+  }
   await d.query("INSERT INTO ysr_nri_wing_admins (username, pass_hash, role) VALUES ($1, $2, 'admin')", [u, hashPassword(p)]);
   console.log(`[db] first admin "${u}" created from ADMIN_USERNAME / ADMIN_PASSWORD.`);
 }
