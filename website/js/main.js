@@ -280,17 +280,8 @@
       const o = $("#hoOrbit"), v = $(".hero-visual"), hr = hero.getBoundingClientRect();
       const vr = v && v.offsetParent ? v.getBoundingClientRect() : null;
       const cx = vr ? vr.left - hr.left + vr.width / 2 : hr.width * 0.82;
-      let cy = vr ? vr.top - hr.top + vr.height / 2 : hr.height * 0.28;
-      let r = vr ? Math.max(vr.width, vr.height) / 2 + 46 : Math.min(hr.width, hr.height) * 0.42;
-      // with the poster: the whole circle fits in the part of the banner seen on the first screen
-      if (vr && IMG.orbitPoster) {
-        const seen = Math.min(hr.height, innerHeight - (hr.top + scrollY));
-        const fit = (seen - 70) / 2;
-        if (fit > 160) { r = Math.min(r, fit); cy = Math.max(r + 30, Math.min(cy, seen - r - 40)); }
-        // the round YSR photo sits on the circle at about half past one
-        const b = $(".cl-ysr"), cr = b && b.parentElement.getBoundingClientRect();
-        if (b && cr) { b.style.left = cx + r * Math.cos(-0.8) - (cr.left - hr.left) - 48 + "px"; b.style.top = cy + r * Math.sin(-0.8) - (cr.top - hr.top) - 48 + "px"; b.style.right = "auto"; }
-      }
+      const cy = vr ? vr.top - hr.top + vr.height / 2 : hr.height * 0.28;
+      const r = vr ? Math.max(vr.width, vr.height) / 2 + 46 : Math.min(hr.width, hr.height) * 0.42;
       o.style.setProperty("--cx", cx + "px"); o.style.setProperty("--cy", cy + "px"); o.style.setProperty("--r", r + "px");
       o.style.setProperty("--ymin", "32px"); // tags never go above the top of the banner
       // like a clock: tags appear at 5 o'clock and go clockwise (6, 7 … 12, 1) round the circle; they disappear at 2 o'clock
